@@ -1,397 +1,436 @@
 <title>메이트 데스크 보드</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <style>
-/* Layout: 한 줄 헤더(지점·날짜·시계·탭) → '오늘' 띠(오늘 결제 일정 + D-day) → 왼쪽 달력·바로가기 / 오른쪽 작업 화면 */
+/* Layout: 왼쪽 = 지점색 고정 메뉴(지점·날짜·달력·바로가기, 탭과 무관하게 항상 같음) / 오른쪽 = 탭 + 오늘 띠 + 작업 화면 */
 :root{
-  --bg:#F3F5F2; --surface:#FFFFFF; --sunk:#EDF0EB; --line:#DCE1DA; --line-2:#C9D0C6;
-  --fg:#1B201C; --muted:#5C655D;
-  --em:#125E32; --ym:#0C357F; --brand:var(--em); --brand-soft:#E2EFE6; --on-brand:#FFFFFF;
-  --warn:#8F5300; --warn-bg:#FFF2D9; --warn-line:#EDCF93;
-  --hol:#C0392B; --sat:#2F5DA8;
-  --ok:#1F7A45; --ok-bg:#E3F3E8;
-  --paper:#FBFCFA;
-  --font:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --bg:#F4F5F7; --surface:#FFFFFF; --sunk:#F7F8FA; --line:#E4E7EB; --line-2:#CDD2D8;
+  --fg:#1B1F24; --muted:#6A7380; --faint:#9AA2AD;
+  --brand:#125E32; --brand-soft:#E8F1EB; --on-brand:#FFFFFF;
+  --side-bg:#125E32; --side-fg:#FFFFFF; --side-muted:rgba(255,255,255,.68); --side-line:rgba(255,255,255,.16); --side-hover:rgba(255,255,255,.10);
+  --side-hol:#FFB8AE; --side-sat:#BFD2FF;
+  --warn:#9A5B00; --warn-bg:#FFF6E5; --ok:#1F7A45; --ok-bg:#E8F4EC; --hol:#D14343;
+  --font:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
   --r:10px;
 }
-:root[data-branch="gimpo"]{ --brand:var(--ym); --brand-soft:#E1E8F5 }
+:root[data-branch="gimpo"]{ --brand:#0C357F; --brand-soft:#E8EDF7; --side-bg:#0C357F }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#101311; --surface:#181C19; --sunk:#141715; --line:#293029; --line-2:#363E37;
-    --fg:#E6EBE6; --muted:#98A299;
-    --em:#6CC08B; --ym:#88A9EC; --brand-soft:#1C2B21; --on-brand:#0D110E;
-    --warn:#F0C06A; --warn-bg:#2A2315; --warn-line:#574522; --hol:#F08A7E; --sat:#8FB1F0;
-    --ok:#6CC08B; --ok-bg:#16261B; --paper:#141815; color-scheme:dark }
-  :root:not([data-theme="light"])[data-branch="gimpo"]{ --brand-soft:#192236 } }
+    --bg:#111316; --surface:#181B1F; --sunk:#1D2025; --line:#2A2F36; --line-2:#3A414A;
+    --fg:#E7EAEE; --muted:#A0A8B3; --faint:#6E7782;
+    --brand:#5DBB84; --brand-soft:#1A2A20; --on-brand:#0E1114; --side-bg:#0F2E1C;
+    --warn:#F2C26B; --warn-bg:#2B2416; --ok:#5DBB84; --ok-bg:#16261C; --hol:#F28B82; color-scheme:dark }
+  :root:not([data-theme="light"])[data-branch="gimpo"]{ --brand:#8AAAF0; --brand-soft:#1A2238; --side-bg:#0E1E3D }
+}
 :root[data-theme="dark"]{
-  --bg:#101311; --surface:#181C19; --sunk:#141715; --line:#293029; --line-2:#363E37;
-  --fg:#E6EBE6; --muted:#98A299;
-  --em:#6CC08B; --ym:#88A9EC; --brand-soft:#1C2B21; --on-brand:#0D110E;
-  --warn:#F0C06A; --warn-bg:#2A2315; --warn-line:#574522; --hol:#F08A7E; --sat:#8FB1F0;
-  --ok:#6CC08B; --ok-bg:#16261B; --paper:#141815; color-scheme:dark }
-:root[data-theme="dark"][data-branch="gimpo"]{ --brand-soft:#192236 }
+  --bg:#111316; --surface:#181B1F; --sunk:#1D2025; --line:#2A2F36; --line-2:#3A414A;
+  --fg:#E7EAEE; --muted:#A0A8B3; --faint:#6E7782;
+  --brand:#5DBB84; --brand-soft:#1A2A20; --on-brand:#0E1114; --side-bg:#0F2E1C;
+  --warn:#F2C26B; --warn-bg:#2B2416; --ok:#5DBB84; --ok-bg:#16261C; --hol:#F28B82; color-scheme:dark }
+:root[data-theme="dark"][data-branch="gimpo"]{ --brand:#8AAAF0; --brand-soft:#1A2238; --side-bg:#0E1E3D }
 
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.55;
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 56px}
-.wrap{max-width:1360px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:14.5px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 48px}
 h1,h2,h3,h4{margin:0;text-wrap:balance}
 button,input,textarea,select{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
 
-/* ── header ── */
-.top{background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--brand);border-radius:var(--r);padding:12px 16px 0;display:flex;flex-direction:column;gap:8px}
-.top-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
-.brand{display:flex;flex-direction:column;min-width:0;margin-right:auto}
-.brand small{font-size:11.5px;letter-spacing:.08em;color:var(--muted);font-weight:600}
-.brand h1{font-size:19px;font-weight:700;color:var(--brand)}
-.now{display:flex;align-items:baseline;gap:10px;font-variant-numeric:tabular-nums}
-.now .date{font-weight:600;font-size:15px}
-.now .time{font-family:var(--mono);font-size:20px;font-weight:600;color:var(--brand)}
-.seg{display:inline-flex;background:var(--sunk);border:1px solid var(--line);border-radius:999px;padding:3px}
-.seg button{border:0;background:transparent;padding:5px 13px;border-radius:999px;cursor:pointer;font-weight:600;font-size:13.5px;color:var(--muted)}
-.seg button[aria-pressed="true"]{background:var(--brand);color:var(--on-brand)}
-.nav{display:flex;gap:2px;overflow-x:auto;margin:0 -4px}
-.nav button{border:0;background:none;cursor:pointer;padding:8px 14px 10px;color:var(--muted);font-weight:600;font-size:14.5px;border-bottom:3px solid transparent;white-space:nowrap}
-.nav button[aria-selected="true"]{color:var(--brand);border-bottom-color:var(--brand)}
+.shell{max-width:1440px;margin:0 auto;display:grid;grid-template-columns:288px minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:1000px){.shell{grid-template-columns:minmax(0,1fr)} .side{order:2;position:static!important;max-height:none!important}}
+
+/* ── 왼쪽 고정 메뉴 ── */
+.side{position:sticky;top:16px;max-height:calc(100vh - 32px);overflow-y:auto;background:var(--side-bg);color:var(--side-fg);border-radius:14px;padding:18px 16px 20px;display:flex;flex-direction:column;gap:18px;scrollbar-width:thin}
+.side-top{display:flex;flex-direction:column;gap:12px}
+.side-brand small{display:block;font-size:11.5px;color:var(--side-muted);letter-spacing:.04em}
+.side-brand b{font-size:16px;font-weight:700}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:rgba(0,0,0,.18);border-radius:8px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--side-muted);padding:6px 0;border-radius:6px;cursor:pointer;font-weight:600;font-size:13.5px}
+.seg button[aria-pressed="true"]{background:#FFFFFF;color:#1B1F24}
+.clock{display:flex;flex-direction:column}
+.clock .time{font-size:34px;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.clock .date{font-size:13.5px;color:var(--side-muted)}
+.side h2{font-size:11.5px;font-weight:600;letter-spacing:.08em;color:var(--side-muted);margin-bottom:8px}
+.side-sec{border-top:1px solid var(--side-line);padding-top:14px}
+
+.cal{position:relative}
+.cal-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.cal-h b{font-size:14px;font-weight:600}
+.cal-nav{display:flex;gap:2px}
+.cal-nav button{border:0;background:transparent;color:var(--side-muted);border-radius:6px;min-width:26px;height:26px;cursor:pointer;font-size:12.5px}
+.cal-nav button:hover{background:var(--side-hover);color:var(--side-fg)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px}
+.wd{border:0;background:none;padding:2px 0 4px;font-size:11.5px;font-weight:600;color:var(--side-muted);cursor:help;border-radius:5px}
+.wd:hover,.wd.on{background:var(--side-hover);color:var(--side-fg)}
+.wd.sat{color:var(--side-sat)} .wd.sun{color:var(--side-hol)}
+.day{position:relative;aspect-ratio:1/1;max-width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:7px;font-size:12.5px;font-variant-numeric:tabular-nums}
+.day.blank{visibility:hidden}
+.day.sat{color:var(--side-sat)} .day.sun,.day.hol{color:var(--side-hol)}
+.day.col{background:var(--side-hover)}
+.day.today{background:#FFFFFF;color:#1B1F24;font-weight:700}
+.day i{position:absolute;bottom:3px;width:4px;height:4px;border-radius:50%;background:currentColor;opacity:.9}
+.day.bill i{background:#FFD27A;opacity:1}
+.day.today.bill i{background:#C27C00}
+.tip{position:absolute;z-index:5;pointer-events:none;background:var(--surface);color:var(--fg);border-radius:8px;padding:8px 11px;font-size:12.5px;line-height:1.5;width:196px;transform:translate(-50%,6px);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.calinfo{margin-top:6px;font-size:12px;color:var(--side-muted)}
+.evlist{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:3px;font-size:12.5px}
+.evlist li{display:grid;grid-template-columns:58px minmax(0,1fr) auto;gap:6px}
+.evlist .d{color:var(--side-muted);font-variant-numeric:tabular-nums}
+.evlist .dd{color:var(--side-muted);font-size:11.5px;font-variant-numeric:tabular-nums}
+.evlist .bill{color:#FFD27A} .evlist .hol{color:var(--side-hol)} .evlist .past{opacity:.5}
+
+.lgroup+.lgroup{margin-top:10px}
+.lgroup h3{font-size:11px;font-weight:500;color:var(--side-muted);margin-bottom:2px}
+.lk{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;text-decoration:none;color:var(--side-fg);border:0;background:transparent;border-radius:6px;padding:5px 8px;margin:0 -8px;width:calc(100% + 16px);font-size:13.5px;text-align:left;cursor:pointer}
+.lk:hover{background:var(--side-hover)}
+.lk span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lk i{font-style:normal;font-size:12px;color:var(--side-muted);flex:none}
+.lk.cur span::after{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:#FFFFFF;margin-left:6px;vertical-align:2px}
+
+/* ── 오른쪽 ── */
+.main{display:flex;flex-direction:column;gap:14px;min-width:0}
+.nav{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line)}
+.nav button{border:0;background:none;cursor:pointer;padding:10px 14px 11px;color:var(--muted);font-weight:500;font-size:15px;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.nav button[aria-selected="true"]{color:var(--fg);font-weight:700;border-bottom-color:var(--brand)}
 .nav button:hover{color:var(--fg)}
 
-/* ── today strip ── */
-.strip{display:flex;flex-wrap:wrap;align-items:stretch;gap:8px}
-.strip .lab{display:flex;align-items:center;font-size:12.5px;font-weight:700;color:var(--muted);letter-spacing:.04em;padding-right:4px}
-.todo{display:flex;flex-direction:column;justify-content:center;border:1px solid var(--warn-line);background:var(--warn-bg);border-radius:8px;padding:8px 12px;min-width:0;flex:1 1 260px}
-.todo b{font-size:14.5px} .todo span{font-size:12.5px;color:var(--muted)}
-.todo.none{border-color:var(--line);background:var(--surface);flex:0 1 auto}
-.todo.none b{font-weight:600;font-size:14px}
-.dchip{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 11px;font-size:13.5px;white-space:nowrap}
-.dchip .dd{font-family:var(--mono);font-weight:600;color:var(--brand);font-variant-numeric:tabular-nums}
-.dchip.soon .dd{color:var(--warn)}
-.dchip .when{color:var(--muted);font-variant-numeric:tabular-nums}
-.prog{display:flex;flex-wrap:wrap;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 8px 6px 12px;cursor:pointer;text-align:left;font-size:13.5px}
-.prog:hover{border-color:var(--brand)}
-.pchip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:99px;background:var(--warn-bg);color:var(--warn);font-weight:600;font-size:12.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.todaybar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 16px}
+.todaybar .lab{font-size:12.5px;font-weight:700;color:var(--muted)}
+.titems{display:flex;flex-wrap:wrap;gap:6px 16px;flex:1 1 320px;min-width:0}
+.titem{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:500}
+.titem::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--brand);flex:none}
+.titem.bill::before{background:#E09A1A}
+.titem.hol::before{background:var(--hol)}
+.titem.none{color:var(--muted);font-weight:400}
+.titem.none::before{background:var(--line-2)}
+.prog{display:flex;flex-wrap:wrap;gap:6px;border:0;background:none;padding:0;cursor:pointer}
+.pchip{font-size:12.5px;font-weight:500;padding:3px 10px;border-radius:99px;background:var(--warn-bg);color:var(--warn);white-space:nowrap;font-variant-numeric:tabular-nums}
 .pchip.done{background:var(--ok-bg);color:var(--ok)}
+.pchip.info{background:var(--sunk);color:var(--muted)}
 
-/* ── grid ── */
-.grid{display:grid;grid-template-columns:320px minmax(0,1fr);grid-template-areas:"side main";gap:14px;align-items:start}
-.side{grid-area:side} .main{grid-area:main}
-@media (max-width:1000px){.grid{grid-template-columns:1fr;grid-template-areas:"main" "side"}}
-.side,.main{display:flex;flex-direction:column;gap:14px;min-width:0}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;min-width:0}
-.panel-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
-.panel-h h2{font-size:15.5px;font-weight:700}
-.panel-h .sub{font-size:12.5px;color:var(--muted)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;min-width:0}
+.panel-h{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.panel-h h2{font-size:17px;font-weight:700}
+.sub{font-size:12.5px;color:var(--muted)}
 
-/* ── calendar ── */
-.cal{position:relative}
-.cal-nav{display:flex;gap:4px}
-.cal-nav button{border:1px solid var(--line);background:var(--surface);border-radius:6px;width:28px;height:28px;cursor:pointer;color:var(--muted)}
-.cal-nav button:hover{color:var(--brand);border-color:var(--brand)}
-.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}
-.wd{border:0;background:none;padding:4px 0 6px;font-size:12.5px;font-weight:700;color:var(--muted);cursor:help;border-radius:6px}
-.wd:hover,.wd:focus-visible,.wd.on{background:var(--brand-soft);color:var(--brand)}
-.wd.sat{color:var(--sat)} .wd.sun{color:var(--hol)}
-.day{position:relative;aspect-ratio:1/1;max-width:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:5px;
-  border-radius:7px;font-size:13.5px;font-variant-numeric:tabular-nums}
-.day.blank{visibility:hidden}
-.day.sat{color:var(--sat)} .day.sun,.day.hol{color:var(--hol)}
-.day.col{background:var(--brand-soft)}
-.day.today{background:var(--brand);color:var(--on-brand);font-weight:700}
-.dots{display:flex;gap:3px;margin-top:3px}
-.dots i{width:5px;height:5px;border-radius:50%;display:block}
-.dots .b{background:var(--warn)} .dots .e{background:var(--brand)} .dots .h{background:var(--hol)}
-.day.today .dots i{background:var(--on-brand)}
-.tip{position:absolute;z-index:5;pointer-events:none;background:var(--fg);color:var(--bg);border-radius:8px;padding:8px 11px;font-size:12.5px;line-height:1.5;
-  width:200px;transform:translate(-50%,6px);box-shadow:0 6px 18px rgba(0,0,0,.18)}
-.tip b{font-size:14px}
-.calinfo{margin-top:8px;font-size:12.5px;color:var(--muted);min-height:20px}
-.calinfo b{color:var(--fg)}
-.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--muted);margin-top:8px}
-.legend span{display:inline-flex;align-items:center;gap:5px}
-.legend i{width:7px;height:7px;border-radius:50%;display:inline-block}
-.evlist{list-style:none;margin:10px 0 0;padding:10px 0 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:4px;font-size:13px}
-.evlist li{display:grid;grid-template-columns:62px 1fr;gap:8px}
-.evlist .d{color:var(--muted);font-variant-numeric:tabular-nums}
-.evlist .hol{color:var(--hol)} .evlist .bill{color:var(--warn)}
-
-/* ── links ── */
-.links{display:flex;flex-direction:column;gap:12px}
-.lgroup h4{font-size:12px;letter-spacing:.06em;color:var(--muted);font-weight:600;margin-bottom:6px}
-.lrow{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.lk{display:flex;align-items:center;justify-content:space-between;gap:6px;text-decoration:none;color:var(--fg);border:1px solid var(--line);background:var(--sunk);border-radius:8px;padding:8px 11px;font-size:13.5px;font-weight:600;min-width:0}
-.lk span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lk i{font-style:normal;color:var(--brand)}
-a.lk:hover{border-color:var(--brand);background:var(--brand-soft)}
-.lk.unset{color:var(--muted);font-weight:500;border-style:dashed;background:transparent}
-.lk.wide{grid-column:1/-1}
-.linkset{display:flex;flex-direction:column;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
-.linkset label{display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--muted)}
-.textbtn{border:0;background:none;color:var(--muted);font-size:12.5px;cursor:pointer;text-decoration:underline;padding:0}
-
-/* ── form bits ── */
+/* form */
 .field{display:flex;flex-direction:column;gap:4px;min-width:0}
-.field > span{font-size:12.5px;font-weight:600;color:var(--muted)}
-.inp,textarea.inp,select.inp{width:100%;border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:8px 10px;min-width:0}
-textarea.inp{resize:vertical;min-height:62px;line-height:1.55}
+.field > span{font-size:12.5px;font-weight:500;color:var(--muted)}
+.inp{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:7px;padding:7px 10px;min-width:0;font-size:14px}
+textarea.inp{resize:vertical;min-height:58px;line-height:1.55}
 .inp:focus{border-color:var(--brand);outline:none;box-shadow:0 0 0 3px var(--brand-soft)}
+.inp::placeholder{color:var(--faint)}
 .row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-@media (max-width:620px){.row2,.row3{grid-template-columns:1fr}}
-.btn{display:inline-flex;align-items:center;border:1px solid var(--line-2);background:var(--surface);border-radius:8px;padding:8px 13px;cursor:pointer;font-weight:600;font-size:14px;white-space:nowrap;text-decoration:none;color:var(--fg)}
+@media (max-width:620px){.row2,.row3{grid-template-columns:minmax(0,1fr)}}
+.btn{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line-2);background:var(--surface);border-radius:7px;padding:7px 13px;cursor:pointer;font-weight:500;font-size:13.5px;white-space:nowrap;text-decoration:none;color:var(--fg)}
 .btn:hover{border-color:var(--brand);color:var(--brand)}
-.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--on-brand);font-weight:600}
 .btn.primary:hover{filter:brightness(1.08);color:var(--on-brand)}
+.btn.sm{padding:2px 9px;font-size:12px;border-radius:99px;color:var(--muted)}
+.btn.sm:hover{color:var(--brand)}
+.btn.ghost{border-color:transparent;background:none;color:var(--muted);padding-inline:6px}
 .btns{display:flex;flex-wrap:wrap;gap:8px}
-.hintline{font-size:12.5px;color:var(--muted)}
-.banner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;background:var(--brand-soft);border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:13.5px;margin-bottom:4px}
-.paper{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:14px 16px;font-size:13.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word;max-height:66vh;overflow:auto;margin:0;font-family:var(--font)}
-.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:600;z-index:20;opacity:0;pointer-events:none;transition:opacity .2s}
+.hint{font-size:12.5px;color:var(--muted)}
+.banner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;background:var(--sunk);border-radius:8px;padding:8px 12px;font-size:13.5px}
+.paper{background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:14px 16px;font-size:13.5px;line-height:1.7;white-space:pre-wrap;word-break:break-word;max-height:62vh;overflow:auto;margin:0;font-family:var(--font)}
+.draft{font-size:11px;font-weight:600;color:var(--warn);background:var(--warn-bg);border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:1px;white-space:nowrap}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 18px;border-radius:999px;font-size:14px;font-weight:500;z-index:20;opacity:0;pointer-events:none;transition:opacity .2s}
 .toast.show{opacity:1}
 
-/* ── 업무일지 ── */
-.logwrap,.cwrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,410px);gap:16px;align-items:start}
-@media (max-width:1240px){.logwrap,.cwrap{grid-template-columns:1fr}}
-.sec{display:flex;flex-direction:column;gap:10px;padding:14px 0;border-top:1px solid var(--line)}
-.sec.first{border-top:0;padding-top:4px}
-.sec-h{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+/* 업무일지 */
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,400px);gap:24px;align-items:start;margin-top:14px}
+@media (max-width:1260px){.split{grid-template-columns:minmax(0,1fr)}}
+.sec{display:flex;flex-direction:column;gap:8px;padding:16px 0;border-top:1px solid var(--line)}
+.sec:first-child{border-top:0;padding-top:0}
+.sec-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px}
 .sec-h h3{font-size:14.5px;font-weight:700}
-.req{font-size:11.5px;font-weight:600;color:var(--warn);border:1px solid var(--warn-line);background:var(--warn-bg);border-radius:5px;padding:0 6px}
-.ok{font-size:11.5px;font-weight:600;color:var(--ok);background:var(--ok-bg);border-radius:5px;padding:0 6px}
-.cks{display:flex;flex-direction:column;gap:2px}
-.ck{display:flex;gap:10px;align-items:flex-start;padding:7px 8px;border-radius:7px;cursor:pointer}
-.ck:hover{background:var(--sunk)}
-.ck input{width:18px;height:18px;margin-top:2px;accent-color:var(--brand);flex:none;cursor:pointer}
+.badge{font-size:11.5px;font-weight:500;color:var(--warn)}
+.badge.done{color:var(--ok)}
+.cks{display:flex;flex-direction:column}
+.ck{display:flex;gap:10px;align-items:flex-start;padding:6px 0}
+.ck input{width:17px;height:17px;margin-top:3px;accent-color:var(--brand);flex:none;cursor:pointer}
+.ck label{flex:1;min-width:0;cursor:pointer}
 .ck small{display:block;color:var(--muted);font-size:12.5px}
-.ck.bill{background:var(--warn-bg);border:1px solid var(--warn-line);margin-top:4px}
-.billrow{display:flex;align-items:flex-start;gap:8px;margin-top:4px}
-.billrow .ck{flex:1;min-width:0;margin-top:0}
-.billrow .btn{padding:6px 10px;font-size:13px;margin-top:4px}
-.tpl{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--surface);display:flex;flex-direction:column;gap:8px}
-.tpl-h{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
-.tpl-h b{font-size:13.5px}
-.tpl .paper{max-height:220px;font-size:13px;padding:10px 12px}
-.posted{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;border:1px solid var(--warn-line);background:var(--warn-bg);font-size:13.5px;cursor:pointer}
-.posted input{width:18px;height:18px;accent-color:var(--ok);flex:none;cursor:pointer}
-.posted.on{border-color:transparent;background:var(--ok-bg);color:var(--ok);font-weight:600}
-.draft{font-size:11px;font-weight:700;color:var(--warn);background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:4px;padding:0 5px;margin-left:4px;vertical-align:1px;white-space:nowrap}
-.preview{position:sticky;top:12px;display:flex;flex-direction:column;gap:10px}
+.ck .go{display:flex;flex-wrap:wrap;gap:4px;flex:none;margin-top:1px}
+.ck.bill label{color:var(--warn);font-weight:500}
+.tplwrap{margin:2px 0 6px 27px;display:flex;flex-direction:column;gap:6px}
+.tplwrap .paper{max-height:200px;font-size:13px;padding:10px 12px}
 
-/* ── 상담 도우미 ── */
+.rows{display:flex;flex-direction:column;gap:6px}
+.r{display:grid;grid-template-columns:var(--cols) 28px;gap:6px;align-items:center}
+.r .del{border:0;background:none;color:var(--faint);cursor:pointer;font-size:17px;line-height:1;height:30px;border-radius:6px}
+.r .del:hover{color:var(--hol);background:var(--sunk)}
+.rhead{display:grid;grid-template-columns:var(--cols) 28px;gap:6px;font-size:11.5px;color:var(--faint);padding-left:2px}
+@media (max-width:620px){.r,.rhead{grid-template-columns:minmax(0,1fr) 28px}.r>*:not(.del){grid-column:1}.r .del{grid-column:2;grid-row:1}.rhead{display:none}}
+.add{align-self:flex-start}
+.auto{display:flex;flex-direction:column;gap:4px}
+.autoline{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:6px 10px;background:var(--brand-soft);border-radius:7px}
+.autoline span{flex:1;min-width:0}
+.autoline small{color:var(--muted);flex:none}
+
+.preview{position:sticky;top:16px;display:flex;flex-direction:column;gap:10px}
+.posted{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;background:var(--warn-bg);color:var(--warn);font-size:13.5px;cursor:pointer}
+.posted input{width:17px;height:17px;accent-color:var(--ok);flex:none;cursor:pointer}
+.posted.on{background:var(--ok-bg);color:var(--ok);font-weight:500}
+
+/* 상담 도우미 */
+.todaycs{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:12px;padding:10px 12px;background:var(--sunk);border-radius:8px;font-size:13.5px}
+.cschip{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:2px 4px 2px 10px;font-size:13px}
+.cschip.on{border-color:var(--brand);color:var(--brand)}
+.cschip button{border:0;background:none;cursor:pointer;color:var(--muted);padding:0 4px;font-size:13px}
+.cschip button:hover{color:var(--brand)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{border:1px solid var(--line-2);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:13.5px;font-weight:600;cursor:pointer;color:var(--muted)}
-.chip[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
-.plan{display:flex;flex-direction:column;gap:6px;margin-top:4px}
-.plan-row{display:grid;grid-template-columns:80px minmax(0,1fr) auto;gap:10px;align-items:center;font-size:14px;padding:6px 10px;background:var(--sunk);border-radius:7px}
-.plan-row select{border:1px solid var(--line);background:var(--paper);border-radius:6px;padding:4px 6px;min-width:0}
-.plan-row .num{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
-.total{display:flex;justify-content:space-between;align-items:baseline;padding:8px 10px;border-top:2px solid var(--line);font-weight:700}
-.total .num{font-size:17px;color:var(--brand);font-variant-numeric:tabular-nums}
-.guide{display:flex;flex-direction:column;gap:12px}
-.gcard{border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:var(--surface)}
-.gcard h4{font-size:13.5px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
-.gcard ul{margin:0;padding-left:18px;font-size:13.5px;display:flex;flex-direction:column;gap:4px}
-.gcard .say{margin-top:8px;background:var(--sunk);border-radius:7px;padding:9px 11px;font-size:13.5px}
-.gcard .say b{display:block;font-size:12px;color:var(--brand)}
+.chip{border:1px solid var(--line-2);background:var(--surface);border-radius:999px;padding:4px 13px;font-size:13.5px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:var(--on-brand);font-weight:500}
+.plan{display:flex;flex-direction:column;gap:4px}
+.plan-row{display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:10px;align-items:center;font-size:14px;padding:4px 0;border-bottom:1px dashed var(--line)}
+.plan-row select{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:3px 6px;min-width:0}
+.total{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0 0;font-weight:700}
+.total .num{font-size:16px;color:var(--brand)}
+.guide{display:flex;flex-direction:column;gap:10px}
+.gcard{border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.gcard h4{font-size:13.5px;font-weight:700;margin-bottom:6px}
+.gcard ul{margin:0;padding-left:18px;font-size:13.5px;display:flex;flex-direction:column;gap:3px}
+.say{margin-top:8px;background:var(--sunk);border-radius:7px;padding:8px 11px;font-size:13.5px}
+.say b{display:block;font-size:11.5px;font-weight:600;color:var(--brand);margin-bottom:2px}
 .gcard.hl{border-color:var(--brand);background:var(--brand-soft)}
-.gcard.miss{border-color:var(--warn-line);background:var(--warn-bg)}
-.pill{font-size:11px;font-weight:700;padding:1px 7px;border-radius:99px;background:var(--brand);color:var(--on-brand)}
-details.faq{border-top:1px solid var(--line);padding:9px 0}
+.gcard.miss{border-color:transparent;background:var(--warn-bg)}
+.gcard.miss h4{color:var(--warn)}
+details.faq{border-top:1px solid var(--line);padding:8px 0}
 details.faq:first-of-type{border-top:0}
-details.faq summary{cursor:pointer;font-weight:600;font-size:14px}
-details.faq p{margin:6px 0 0;font-size:13.5px;background:var(--sunk);border-radius:7px;padding:9px 11px}
-.draftnote{font-size:12px;color:var(--warn);margin-top:4px}
+details.faq summary{cursor:pointer;font-weight:500;font-size:14px}
+details.faq p{margin:6px 0 0;font-size:13.5px;color:var(--muted)}
 
-/* ── 상담 참고 ── */
-.refgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
-@media (max-width:760px){.refgrid{grid-template-columns:1fr}}
-.ref h3{font-size:15px;margin-bottom:8px}
-.ref ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:14px}
-.ref .say{background:var(--sunk);border-radius:8px;padding:10px 12px;font-size:13.5px;margin-top:10px}
-.ref .say b{display:block;font-size:11.5px;letter-spacing:.06em;color:var(--brand);margin-bottom:3px}
+/* 상담 참고 */
+.refgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 32px;margin-top:16px}
+@media (max-width:760px){.refgrid{grid-template-columns:minmax(0,1fr)}}
+.ref h3{font-size:15px;font-weight:700;margin-bottom:8px}
+.ref ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.ref.full{grid-column:1/-1}
+.rsubj{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
 .tbl{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
-th{font-size:12px;color:var(--muted);font-weight:600}
-td.num{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
-.kv{display:grid;grid-template-columns:96px 1fr;gap:6px 12px;font-size:14px;margin:0}
-.kv dt{color:var(--muted)} .kv dd{margin:0;font-variant-numeric:tabular-nums}
-.ref.full{grid-column:1/-1}
-.rsubj{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
-.rsubj .gcard ul{font-size:13.5px}
-.ref details.faq summary{font-size:14px}
+th{font-size:12px;color:var(--muted);font-weight:500}
+td.num{font-weight:600;white-space:nowrap}
+.kv{display:grid;grid-template-columns:96px minmax(0,1fr);gap:6px 12px;font-size:14px;margin:0}
+.kv dt{color:var(--muted)} .kv dd{margin:0;font-variant-numeric:tabular-nums;word-break:break-all}
+
+/* 문자 템플릿 */
+.smsgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-top:6px}
+.sms{border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.sms-h{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sms-h b{font-size:14.5px}
+.sms .paper{max-height:none;flex:1}
+.sms .need{font-size:12px;color:var(--warn)}
+.ph{color:var(--warn);font-weight:500}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
-<div class="wrap">
-  <header class="top">
-    <div class="top-row">
-      <div class="brand"><small>메이트 학원 · 운영팀 데스크</small><h1 id="brandName">에듀메이트 학원 목동관</h1></div>
-      <div class="now"><span class="date" id="date">&nbsp;</span><span class="time" id="time">--:--</span></div>
+<div class="shell">
+  <!-- 왼쪽 고정 메뉴 -->
+  <aside class="side" aria-label="고정 메뉴">
+    <div class="side-top">
+      <div class="side-brand"><small>메이트 학원 데스크</small><b id="brandName">에듀메이트 학원 목동관</b></div>
       <div class="seg" role="group" aria-label="지점 선택">
         <button type="button" id="bMok" data-b="mokdong" aria-pressed="true">목동관</button>
         <button type="button" id="bGim" data-b="gimpo" aria-pressed="false">김포관</button>
       </div>
+      <div class="clock"><span class="time" id="time">--:--</span><span class="date" id="date">&nbsp;</span></div>
     </div>
-    <div class="nav" role="tablist" aria-label="화면">
-      <button type="button" role="tab" id="tab-log" data-v="log" aria-selected="true">업무일지 작성</button>
+
+    <section class="side-sec">
+      <div class="cal" id="cal">
+        <div class="cal-h"><b id="calTitle">달력</b>
+          <div class="cal-nav"><button type="button" id="calPrev" aria-label="이전 달">‹</button><button type="button" id="calToday">오늘</button><button type="button" id="calNext" aria-label="다음 달">›</button></div></div>
+        <div class="cal-grid" id="calHead"></div>
+        <div class="cal-grid" id="calBody"></div>
+        <div class="tip" id="tip" hidden></div>
+      </div>
+      <div class="calinfo" id="calInfo">요일에 마우스를 올리면 이달 수업 횟수가 보여요.</div>
+      <ul class="evlist" id="evlist"></ul>
+    </section>
+
+    <section class="side-sec" aria-labelledby="h-links">
+      <h2 id="h-links">바로가기</h2>
+      <div id="links"></div>
+    </section>
+  </aside>
+
+  <div class="main">
+    <nav class="nav" role="tablist" aria-label="화면">
+      <button type="button" role="tab" id="tab-log" data-v="log" aria-selected="true">업무일지</button>
       <button type="button" role="tab" id="tab-consult" data-v="consult" aria-selected="false">상담 도우미</button>
       <button type="button" role="tab" id="tab-ref" data-v="ref" aria-selected="false">상담 참고</button>
-    </div>
-  </header>
+      <button type="button" role="tab" id="tab-sms" data-v="sms" aria-selected="false">문자 템플릿</button>
+    </nav>
 
-  <section class="strip" id="strip" aria-label="오늘 일정"></section>
+    <section class="todaybar" aria-label="오늘">
+      <span class="lab">오늘</span>
+      <div class="titems" id="titems"></div>
+      <button type="button" class="prog" id="prog" aria-label="업무일지 진행 상황"></button>
+    </section>
 
-  <div class="grid">
-    <aside class="side">
-      <section class="panel">
-        <div class="panel-h"><h2 id="calTitle">달력</h2>
-          <div class="cal-nav"><button type="button" id="calPrev" aria-label="이전 달">‹</button><button type="button" id="calToday" aria-label="이번 달" style="width:auto;padding:0 8px;font-size:12px">오늘</button><button type="button" id="calNext" aria-label="다음 달">›</button></div></div>
-        <div class="cal" id="cal">
-          <div class="cal-grid" id="calHead"></div>
-          <div class="cal-grid" id="calBody"></div>
-          <div class="tip" id="tip" hidden></div>
-        </div>
-        <div class="calinfo" id="calInfo">요일 위에 마우스를 올리면 이달에 그 요일이 몇 번인지 보여요.</div>
-        <div class="legend"><span><i style="background:var(--warn)"></i>결제·정산</span><span><i style="background:var(--brand)"></i>학원 일정</span><span><i style="background:var(--hol)"></i>공휴일</span></div>
-        <ul class="evlist" id="evlist"></ul>
-      </section>
-      <section class="panel">
-        <div class="panel-h"><h2>바로가기</h2><button class="textbtn" type="button" id="toggleLinks">주소 설정</button></div>
-        <div class="links" id="links"></div>
-        <div class="linkset" id="linkset" hidden></div>
-      </section>
-    </aside>
-
-    <main class="main">
-      <!-- 업무일지 -->
-      <section id="view-log" class="panel">
-        <div class="logwrap">
-          <div>
-            <div class="panel-h"><h2>오늘 업무일지</h2><span class="sub" id="logStatus"></span></div>
-            <div class="banner" id="exampleBanner" hidden><span>처음 열어서 예시 내용이 채워져 있어요.</span><button class="btn" type="button" id="clearLog">비우고 시작</button></div>
-            <div class="row2" style="margin:10px 0 4px">
+    <!-- 업무일지 -->
+    <section id="view-log" class="panel">
+      <div class="panel-h"><h2>오늘 업무일지</h2><span class="sub" id="logStatus"></span></div>
+      <div class="banner" id="exampleBanner" hidden style="margin-top:12px"><span>처음 열어서 예시 내용이 채워져 있어요.</span><button class="btn" type="button" id="clearLog">비우고 시작</button></div>
+      <div class="split">
+        <div>
+          <div class="sec">
+            <div class="row2">
               <label class="field" for="lg-writer"><span>작성자</span><input class="inp" id="lg-writer" list="desks" placeholder="이름"></label>
               <label class="field" for="lg-shift"><span>근무</span>
                 <select class="inp" id="lg-shift"><option>오후 근무</option><option>오전 근무</option><option>종일 근무</option><option>마감 근무</option></select></label>
             </div>
             <datalist id="desks"></datalist>
+          </div>
 
-            <div class="sec first">
-              <div class="sec-h"><h3>✅ 시작 체크</h3><span class="req" id="badge-start">근무 시작 시 필수</span></div>
-              <div class="cks">
-                <label class="ck" for="lg-c1"><input type="checkbox" id="lg-c1"><div>부재중 전화 확인 완료</div></label>
-                <label class="ck" for="lg-c2"><input type="checkbox" id="lg-c2"><div>💳 [결제/등록/환불] 카톡방 확인 → 누락 0건 확인<small>환불·미납 미처리 건이 있으면 아래 '팔로우업'에 꼭 적어주세요</small></div></label>
-              </div>
+          <div class="sec">
+            <div class="sec-h"><h3>시작 체크</h3><span class="badge" id="badge-start">근무 시작 시 필수</span></div>
+            <div class="cks">
+              <div class="ck"><input type="checkbox" id="lg-c1"><label for="lg-c1">부재중 전화 확인 완료</label></div>
+              <div class="ck"><input type="checkbox" id="lg-c2"><label for="lg-c2">[결제/등록/환불] 카톡방 확인 → 누락 0건 확인<small>환불·미납 미처리 건이 있으면 아래 팔로우업에 꼭 적어주세요</small></label></div>
               <div id="billChecks"></div>
             </div>
-            <div class="sec">
-              <div class="sec-h"><h3>📞 부재중 전화</h3></div>
-              <textarea class="inp" id="lg-missed" placeholder="한 줄에 한 건씩 (예: 14:20 010-0000-0000 수학 문의 → 콜백 완료)"></textarea>
-            </div>
-            <div class="sec">
-              <div class="sec-h"><h3>✅ 일일 체크</h3><span class="req" id="badge-daily">근무 시작 시 필수</span></div>
-              <div class="cks">
-                <label class="ck" for="lg-d1"><input type="checkbox" id="lg-d1"><div>해당관 블로그 최근 게시물 정독</div></label>
-                <label class="ck" for="lg-d2"><input type="checkbox" id="lg-d2"><div>&lt;첫 등원&gt; 게시판 확인 후 오늘자 첫 등원 학생 확인<small>강의실 안내 준비</small></div></label>
-                <label class="ck" for="lg-d3"><input type="checkbox" id="lg-d3"><div>전날 수업 진행 여부 확인<small>① 카페 게시글 업로드 ② 출석부 구글 드라이브 업데이트, 두 가지 모두 확인</small></div></label>
-              </div>
-              <div class="row2">
-                <label class="field" for="lg-unwritten"><span>1. 미작성 강사 (카페 게시글)</span><input class="inp" id="lg-unwritten" placeholder="없으면 비워두세요"></label>
-                <label class="field" for="lg-unrecorded"><span>2. 미기입 강사 (출석부)</span><input class="inp" id="lg-unrecorded" placeholder="없으면 비워두세요"></label>
-              </div>
-            </div>
-            <div class="sec"><div class="sec-h"><h3>👥 강사·직원 소통</h3></div><textarea class="inp" id="lg-staff" placeholder="강사·직원과 주고받은 내용"></textarea></div>
-            <div class="sec"><div class="sec-h"><h3>🙋 문의·컴플레인 (학생/학부모)</h3></div><textarea class="inp" id="lg-inquiry" placeholder="누구 / 무슨 문의 / 어떻게 답변했는지"></textarea></div>
-            <div class="sec"><div class="sec-h"><h3>🆕 신규 상담</h3><span class="hintline">상담 도우미에서 '업무일지에 한 줄 추가'를 누르면 여기에 들어와요</span></div><textarea class="inp" id="lg-new" placeholder="이름/ 학교학년 / 문의 과목/ 상담글 링크"></textarea></div>
-            <div class="sec">
-              <div class="sec-h"><h3>🔁 팔로우업</h3><span class="hintline">다음 근무자가 꼭 알아야 할 것</span></div>
-              <textarea class="inp" id="lg-follow" placeholder="다음 근무자에게 넘길 일"></textarea>
-              <div class="row2">
-                <label class="field" for="lg-ceo"><span>대표님/원장님 지시사항</span><textarea class="inp" id="lg-ceo"></textarea></label>
-                <label class="field" for="lg-ref"><span>참고</span><textarea class="inp" id="lg-ref"></textarea></label>
-              </div>
-            </div>
-            <div class="sec"><div class="sec-h"><h3>📝 기타</h3><span class="hintline">등록, 비품 구매(영수증은 카페에 사진 첨부) 등</span></div><textarea class="inp" id="lg-etc"></textarea></div>
           </div>
-          <div class="preview">
-            <div class="panel-h" style="margin:0"><h2>카페에 올릴 글</h2><span class="sub">입력하면 바로 바뀌어요</span></div>
-            <pre class="paper" id="logOut"></pre>
+
+          <div class="sec">
+            <div class="sec-h"><h3>부재중 전화</h3></div>
+            <div class="rows" data-sec="missed" id="rows-missed"></div>
+          </div>
+
+          <div class="sec">
+            <div class="sec-h"><h3>일일 체크</h3><span class="badge" id="badge-daily">근무 시작 시 필수</span></div>
+            <div class="cks">
+              <div class="ck"><input type="checkbox" id="lg-d1"><label for="lg-d1">해당관 블로그 최근 게시물 정독</label><span class="go" id="go-d1"></span></div>
+              <div class="ck"><input type="checkbox" id="lg-d2"><label for="lg-d2">&lt;첫 등원&gt; 게시판 확인 후 오늘자 첫 등원 학생 확인<small>강의실 안내 준비</small></label><span class="go" id="go-d2"></span></div>
+              <div class="ck"><input type="checkbox" id="lg-d3"><label for="lg-d3">전날 수업 진행 여부 확인<small>① 카페 게시글 업로드 ② 출석부 업데이트, 두 가지 모두 확인</small></label><span class="go" id="go-d3"></span></div>
+            </div>
+            <div class="row2">
+              <label class="field" for="lg-unwritten"><span>1. 미작성 강사 (카페 게시글)</span><input class="inp" id="lg-unwritten" placeholder="없으면 비워두세요"></label>
+              <label class="field" for="lg-unrecorded"><span>2. 미기입 강사 (출석부)</span><input class="inp" id="lg-unrecorded" placeholder="없으면 비워두세요"></label>
+            </div>
+          </div>
+
+          <div class="sec"><div class="sec-h"><h3>강사·직원 소통</h3></div><div class="rows" data-sec="staff" id="rows-staff"></div></div>
+          <div class="sec"><div class="sec-h"><h3>문의·컴플레인</h3><span class="hint">학생/학부모</span></div><div class="rows" data-sec="inquiry" id="rows-inquiry"></div></div>
+          <div class="sec">
+            <div class="sec-h"><h3>신규 상담</h3><span class="hint">상담 도우미에서 저장한 상담은 자동으로 들어와요</span></div>
+            <div class="auto" id="autoConsults"></div>
+            <div class="rows" data-sec="newc" id="rows-newc"></div>
+          </div>
+          <div class="sec">
+            <div class="sec-h"><h3>팔로우업</h3><span class="hint">다음 근무자가 알아야 할 것 · 한 줄에 한 건</span></div>
+            <textarea class="inp" id="lg-follow"></textarea>
+            <div class="row2">
+              <label class="field" for="lg-ceo"><span>대표님/원장님 지시사항</span><textarea class="inp" id="lg-ceo"></textarea></label>
+              <label class="field" for="lg-ref"><span>참고</span><textarea class="inp" id="lg-ref"></textarea></label>
+            </div>
+          </div>
+          <div class="sec"><div class="sec-h"><h3>기타</h3><span class="hint">등록, 비품 구매(영수증은 카페에 사진 첨부) 등</span></div><textarea class="inp" id="lg-etc"></textarea></div>
+        </div>
+
+        <div class="preview">
+          <div class="panel-h"><h2 style="font-size:15px">카페에 올릴 글</h2><span class="sub">입력하면 바로 바뀌어요</span></div>
+          <pre class="paper" id="logOut"></pre>
+          <div class="btns">
+            <button class="btn primary" type="button" id="copyLog">업무일지 복사</button>
+            <a class="btn" id="openLogBoard" href="#" target="_blank" rel="noopener">업무일지 게시판 ↗</a>
+          </div>
+          <div class="hint" id="linkHint" hidden>카페 글에서 <b>상담글 링크</b> 자리에 신규상담 게시글 링크를 붙여넣으세요.</div>
+          <label class="posted" id="postedBox" for="lg-posted"><input type="checkbox" id="lg-posted"><span id="postedText">카페 업무일지 게시판에 올렸어요</span></label>
+          <div class="hint">작성 중인 내용은 이 컴퓨터에만 임시 저장되고, 다음 날이 되면 새 일지로 시작해요. 근무 교대 전에 꼭 카페에 올려주세요.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 상담 도우미 -->
+    <section id="view-consult" class="panel" hidden>
+      <div class="panel-h"><h2>상담 도우미</h2><button class="btn" type="button" id="resetConsult">+ 새 상담</button></div>
+      <div class="todaycs" id="todayCs"></div>
+      <div class="banner" id="consultBanner" hidden style="margin-top:10px"><span>예시 상담이 채워져 있어요.</span><button class="btn" type="button" id="clearConsult">비우고 시작</button></div>
+      <div class="split">
+        <div>
+          <div class="sec" style="padding-top:0;border-top:0">
+            <div class="sec-h"><h3>학생 정보</h3></div>
+            <div class="row3">
+              <label class="field" for="cs-name"><span>학생 이름</span><input class="inp" id="cs-name"></label>
+              <label class="field" for="cs-school"><span>학교</span><input class="inp" id="cs-school" placeholder="예: 목일중"></label>
+              <label class="field" for="cs-grade"><span>학년</span>
+                <select class="inp" id="cs-grade"><option value="">선택</option><option>중1</option><option>중2</option><option>중3</option><option>고1</option><option>고2</option><option>고3</option><option>N수</option></select></label>
+            </div>
+            <div class="row3">
+              <label class="field" for="cs-route"><span>상담 방식</span><select class="inp" id="cs-route"><option>전화</option><option>방문</option><option>카톡</option><option>카페 문의</option></select></label>
+              <label class="field" for="cs-from"><span>알게 된 경로</span><select class="inp" id="cs-from"><option value="">선택</option><option>지인 소개</option><option>재원생 형제</option><option>블로그</option><option>맘카페</option><option>인스타그램</option><option>간판·전단</option><option>기타</option></select></label>
+              <label class="field" for="cs-sib"><span>형제자매 수강</span><input class="inp" id="cs-sib" placeholder="있으면 이름"></label>
+            </div>
+          </div>
+          <div class="sec"><div class="sec-h"><h3>문의 과목과 수업 형태</h3></div><div class="chips" id="subjChips"></div><div class="plan" id="plan"></div></div>
+          <div class="sec">
+            <div class="sec-h"><h3>상황 파악</h3></div>
+            <div class="row2">
+              <label class="field" for="cs-score"><span>최근 성적 (내신·모의고사)</span><input class="inp" id="cs-score"></label>
+              <label class="field" for="cs-now"><span>현재 학원·과외</span><input class="inp" id="cs-now"></label>
+            </div>
+            <label class="field" for="cs-concern"><span>학부모·학생이 말한 고민</span><textarea class="inp" id="cs-concern" placeholder="들은 말을 최대한 그대로 적어주세요"></textarea></label>
+            <div class="row2">
+              <label class="field" for="cs-time"><span>가능한 요일·시간</span><input class="inp" id="cs-time"></label>
+              <label class="field" for="cs-goal"><span>목표 (희망 대학·내신 목표 등)</span><input class="inp" id="cs-goal"></label>
+            </div>
+          </div>
+          <div class="sec">
+            <div class="sec-h"><h3>연락과 다음 단계</h3></div>
+            <div class="row3">
+              <label class="field" for="cs-tel"><span>학부모 연락처</span><input class="inp" id="cs-tel" inputmode="tel"></label>
+              <label class="field" for="cs-callback"><span>콜백 희망 시간</span><input class="inp" id="cs-callback"></label>
+              <label class="field" for="cs-next"><span>다음 단계</span><select class="inp" id="cs-next"></select></label>
+            </div>
+            <label class="field" for="cs-memo"><span>상담자 메모 (안내한 내용, 특이사항)</span><textarea class="inp" id="cs-memo"></textarea></label>
+          </div>
+          <div class="sec">
+            <div class="sec-h"><h3>상담 기록</h3><span class="hint">운영팀카페 신규상담 게시판용</span></div>
+            <pre class="paper" id="consultOut" style="max-height:340px"></pre>
             <div class="btns">
-              <button class="btn primary" type="button" id="copyLog">업무일지 복사</button>
-              <a class="btn" id="openLogBoard" href="#" target="_blank" rel="noopener">업무일지 게시판 열기 ↗</a>
+              <button class="btn primary" type="button" id="saveConsult">저장하고 복사</button>
+              <a class="btn" id="openConsultBoard" href="#" target="_blank" rel="noopener">신규상담 게시판 ↗</a>
             </div>
-            <label class="posted" id="postedBox" for="lg-posted"><input type="checkbox" id="lg-posted"><span id="postedText">카페 업무일지 게시판에 올렸어요</span></label>
-            <div class="hintline">복사해서 운영팀카페 업무일지 게시판에 붙여넣으세요. 작성 중인 내용은 이 컴퓨터에 임시 저장되고, 다음 날이 되면 새 일지로 시작해요. 근무 교대 전에 꼭 카페에 올려주세요.</div>
+            <div class="hint">저장하면 오늘 업무일지 '신규 상담'에 한 줄이 자동으로 들어가요. 고친 뒤 다시 누르면 같은 줄이 고쳐져요.</div>
           </div>
         </div>
-      </section>
+        <div class="guide" id="guide"></div>
+      </div>
+    </section>
 
-      <!-- 상담 도우미 -->
-      <section id="view-consult" class="panel" hidden>
-        <div class="cwrap">
-          <div>
-            <div class="panel-h"><h2>상담 도우미</h2><button class="textbtn" type="button" id="resetConsult">새 상담 시작</button></div>
-            <div class="banner" id="consultBanner" hidden><span>예시 상담이 채워져 있어요.</span><button class="btn" type="button" id="clearConsult">비우고 시작</button></div>
-            <div class="sec first">
-              <div class="sec-h"><h3>학생 정보</h3></div>
-              <div class="row3">
-                <label class="field" for="cs-name"><span>학생 이름</span><input class="inp" id="cs-name"></label>
-                <label class="field" for="cs-school"><span>학교</span><input class="inp" id="cs-school" placeholder="예: 목일중"></label>
-                <label class="field" for="cs-grade"><span>학년</span>
-                  <select class="inp" id="cs-grade"><option value="">선택</option><option>중1</option><option>중2</option><option>중3</option><option>고1</option><option>고2</option><option>고3</option><option>N수</option></select></label>
-              </div>
-              <div class="row3">
-                <label class="field" for="cs-route"><span>상담 방식</span><select class="inp" id="cs-route"><option>전화</option><option>방문</option><option>카톡</option><option>카페 문의</option></select></label>
-                <label class="field" for="cs-from"><span>알게 된 경로</span><select class="inp" id="cs-from"><option value="">선택</option><option>지인 소개</option><option>재원생 형제</option><option>블로그</option><option>맘카페</option><option>인스타그램</option><option>간판·전단</option><option>기타</option></select></label>
-                <label class="field" for="cs-sib"><span>형제자매 수강</span><input class="inp" id="cs-sib" placeholder="있으면 이름"></label>
-              </div>
-            </div>
-            <div class="sec"><div class="sec-h"><h3>문의 과목과 수업 형태</h3></div><div class="chips" id="subjChips"></div><div class="plan" id="plan"></div></div>
-            <div class="sec">
-              <div class="sec-h"><h3>상황 파악</h3></div>
-              <div class="row2">
-                <label class="field" for="cs-score"><span>최근 성적 (내신·모의고사)</span><input class="inp" id="cs-score"></label>
-                <label class="field" for="cs-now"><span>현재 학원·과외</span><input class="inp" id="cs-now"></label>
-              </div>
-              <label class="field" for="cs-concern"><span>학부모·학생이 말한 고민</span><textarea class="inp" id="cs-concern" placeholder="들은 말을 최대한 그대로 적어주세요"></textarea></label>
-              <div class="row2">
-                <label class="field" for="cs-time"><span>가능한 요일·시간</span><input class="inp" id="cs-time"></label>
-                <label class="field" for="cs-goal"><span>목표 (희망 대학·내신 목표 등)</span><input class="inp" id="cs-goal"></label>
-              </div>
-            </div>
-            <div class="sec">
-              <div class="sec-h"><h3>연락과 다음 단계</h3></div>
-              <div class="row3">
-                <label class="field" for="cs-tel"><span>학부모 연락처</span><input class="inp" id="cs-tel" inputmode="tel"></label>
-                <label class="field" for="cs-callback"><span>콜백 희망 시간</span><input class="inp" id="cs-callback"></label>
-                <label class="field" for="cs-next"><span>다음 단계</span><select class="inp" id="cs-next"><option value="">선택</option><option>레벨테스트 예약</option><option>방문 상담 예약</option><option>체험 수업 예약</option><option>원장 상담 연결</option><option>콜백 예정</option><option>등록 완료</option><option>보류</option></select></label>
-              </div>
-              <label class="field" for="cs-memo"><span>상담자 메모 (안내한 내용, 특이사항)</span><textarea class="inp" id="cs-memo"></textarea></label>
-              <label class="field" for="cs-link"><span>카페 상담글 링크 (올린 뒤 붙여넣기)</span><input class="inp" id="cs-link" placeholder="https://cafe.naver.com/..."></label>
-            </div>
-            <div class="sec">
-              <div class="sec-h"><h3>상담 기록</h3><span class="hintline">운영팀카페 신규상담 게시판용</span></div>
-              <pre class="paper" id="consultOut" style="max-height:320px"></pre>
-              <div class="btns">
-                <button class="btn primary" type="button" id="copyConsult">상담 기록 복사</button>
-                <button class="btn" type="button" id="toLog">업무일지에 한 줄 추가</button>
-                <a class="btn" id="openConsultBoard" href="#" target="_blank" rel="noopener">신규상담 게시판 열기 ↗</a>
-              </div>
-            </div>
-          </div>
-          <div class="guide" id="guide"></div>
+    <!-- 상담 참고 -->
+    <section id="view-ref" class="panel" hidden>
+      <div class="panel-h"><h2>상담 참고</h2><span class="sub">통화 중에 펼쳐두고 보세요</span></div>
+      <div class="refgrid" id="refgrid"></div>
+    </section>
+
+    <!-- 문자 템플릿 -->
+    <section id="view-sms" class="panel" hidden>
+      <div class="panel-h"><h2>문자 템플릿</h2><span class="sub" id="smsFrom"></span></div>
+      <div class="sec" style="margin-top:12px">
+        <div class="sec-h"><h3>채울 내용</h3><span class="hint">입력하면 아래 문구에 바로 들어가요</span></div>
+        <div class="row3">
+          <label class="field" for="sm-student"><span>학생 이름</span><input class="inp" id="sm-student"></label>
+          <label class="field" for="sm-date"><span>첫 수업 날짜</span><input class="inp" id="sm-date" type="date"></label>
+          <label class="field" for="sm-time"><span>첫 수업 시간</span><input class="inp" id="sm-time" placeholder="예: 오후 6시"></label>
         </div>
-      </section>
-
-      <!-- 상담 참고 -->
-      <section id="view-ref" class="panel" hidden>
-        <div class="panel-h"><h2>상담 참고</h2><span class="sub">통화 중에 펼쳐두고 보세요</span></div>
-        <div class="refgrid" id="refgrid"></div>
-      </section>
-    </main>
+        <div class="row3">
+          <label class="field" for="sm-cls"><span>수업 (과목·반)</span><input class="inp" id="sm-cls" placeholder="예: 영어 정규반"></label>
+          <label class="field" for="sm-room"><span>강의실 (선택)</span><input class="inp" id="sm-room" placeholder="비우면 빠져요"></label>
+          <label class="field" for="sm-month"><span>수강료 청구 월</span><select class="inp" id="sm-month"></select></label>
+        </div>
+      </div>
+      <div class="smsgrid" id="smsgrid"></div>
+    </section>
   </div>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -401,39 +440,54 @@ td.num{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
    설정 — 이 부분만 고치면 됩니다 (수정 규칙은 데스크업무규격.md 참고)
    ========================================================= */
 const CONFIG = {
+  // 지점별 정보. cafe·blog·drive는 아래 links의 id를 가리킵니다
   branches: {
-    mokdong: { name:"에듀메이트 학원 목동관", brand:"에듀메이트 학원", short:"목동관", tel:"02-6736-9505", email:"edumate.mokdong@gmail.com", map:"https://naver.me/GQGJUgEr", desks:["조아현","박서진"] },
-    gimpo:   { name:"너를위한 메이트학원 김포관", brand:"너를위한 메이트학원", short:"김포관", tel:"031-8049-0716", email:"", map:"", desks:["유은경"] }
+    mokdong: { name:"에듀메이트 학원 목동관", brand:"에듀메이트 학원", short:"목동관", tel:"02-6736-9505", email:"edumate.mokdong@gmail.com", map:"https://naver.me/GQGJUgEr",
+               desks:["조아현","박서진"], cafe:"cafe-mok", blog:"blog-mok", drive:"drive-mok" },
+    gimpo:   { name:"너를위한 메이트학원 김포관", brand:"너를위한 메이트학원", short:"김포관", tel:"031-8049-0716", email:"", map:"",
+               desks:["유은경"], cafe:"cafe-gim", blog:"blog-gim", drive:"drive-gim" }
   },
   smsTel: "010-5528-9505",
 
+  // 왼쪽 바로가기. branch를 적으면 그 지점을 골랐을 때 점(•)으로 표시됩니다
   links: [
-    { group:"운영팀카페", id:"ops",        name:"운영팀카페",     url:"https://cafe.naver.com/mateadmin", wide:true },
-    { group:"운영팀카페", id:"ops-log",    name:"업무일지",       url:"" },
-    { group:"운영팀카페", id:"ops-new",    name:"신규상담",       url:"" },
-    { group:"운영팀카페", id:"ops-first",  name:"첫 등원",        url:"" },
-    { group:"운영팀카페", id:"ops-pay",    name:"결제·환불",      url:"" },
-    { group:"교직원카페", id:"staff",      name:"교직원카페",     url:"", wide:true },
-    { group:"교직원카페", id:"staff-class",name:"수업 진행",      url:"" },
-    { group:"교직원카페", id:"staff-room", name:"보강·강의실",    url:"" },
-    { group:"수강생카페", id:"mok",        name:"목동관 수강생",  url:"" },
-    { group:"수강생카페", id:"gim",        name:"김포관 수강생",  url:"" },
-    { group:"자주 쓰는 곳", id:"drive",    name:"출석부 (구글 드라이브)", url:"", wide:true },
-    { group:"자주 쓰는 곳", id:"blog-mok", name:"목동관 블로그",  url:"", branch:"mokdong" },  // branch: 그 지점을 골랐을 때만 보임
-    { group:"자주 쓰는 곳", id:"blog-gim", name:"김포관 블로그",  url:"", branch:"gimpo" },
-    { group:"자주 쓰는 곳", id:"aca",      name:"ACA",           url:"" }
+    { group:"네이버 카페", id:"cafe-ops",  name:"운영팀 카페",        url:"https://cafe.naver.com/mateadmin" },
+    { group:"네이버 카페", id:"cafe-staff",name:"교직원 카페",        url:"https://cafe.naver.com/matestaff" },
+    { group:"네이버 카페", id:"cafe-mok",  name:"목동관 수강생 카페", url:"https://cafe.naver.com/edumatemokdong", branch:"mokdong" },
+    { group:"네이버 카페", id:"cafe-gim",  name:"김포관 수강생 카페", url:"https://cafe.naver.com/mategimpo", branch:"gimpo" },
+    { group:"네이버 블로그", id:"blog-mok", name:"목동관 블로그",     url:"https://blog.naver.com/edumate_mokdong", branch:"mokdong" },
+    { group:"네이버 블로그", id:"blog-gim", name:"김포관 블로그",     url:"https://blog.naver.com/yourmate_gimpo", branch:"gimpo" },
+    { group:"업무 도구", id:"aca",        name:"ACA2000",             url:"https://t.aca2000.co.kr/Account/Login?ReturnUrl=%2F" },
+    { group:"업무 도구", id:"drive-mok",  name:"목동관 출석시트",     url:"https://drive.google.com/drive/folders/1iDwKKvctaZd6wc8FoDB-bO9h9wb8YVCo?usp=drive_link", branch:"mokdong" },
+    { group:"업무 도구", id:"drive-gim",  name:"김포관 출석시트",     url:"https://drive.google.com/drive/folders/1VhHLdkpoocgHAfojUUFW-SKBLJv54A41?usp=drive_link", branch:"gimpo" },
+    { group:"웹페이지", id:"web-mate",   name:"메이트학원 웹페이지",  url:"https://mate4u.netlify.app/" },
+    { group:"웹페이지", id:"web-lab",    name:"메이트랩 웹페이지",    url:"https://mate-lab.netlify.app/" },
+    { group:"지도·연락", id:"map-mok",   name:"목동관 네이버 지도",   url:"https://naver.me/GQGJUgEr", branch:"mokdong" },
+    { group:"지도·연락", id:"mail-mok",  name:"목동관 이메일",        copy:"edumate.mokdong@gmail.com", branch:"mokdong" }
   ],
 
+  // 운영팀카페 게시판 주소. 비워두면 운영팀 카페 첫 화면이 열립니다
+  boards: { log:"", consult:"", first:"" },
+
   // 매달 반복되는 결제·정산 일정. day: 1~31 또는 "last"(말일)
-  // tpl: [문구 복사] 버튼으로 나오는 글. {월}=이 일정이 있는 달, {다음달}, {브랜드}, {지점}, {대표번호}, {문자번호}
+  // tpl: 업무일지에서 [문구 보기]로 나오는 카페 글 / sms: [문자 템플릿] 탭의 어떤 문자로 연결할지
   billing: [
     { day:1,  title:"이번 달 수강료 납부기한", detail:"ACA에서 당월분 납부 현황 확인 → 미납 학생 정리 후 팔로우업에 기재" },
     { day:1,  title:"강사별 수강료 재확인",     detail:"교직원카페에 반별 수강생·수강료 확인 요청 올리기",
       tplName:"교직원카페 수강료 확인 요청 글", tplDraft:true,
       tpl:"[{월}월 수강료 확인 요청] {지점}\n\n선생님들 안녕하세요, {지점} 데스크입니다.\n{월}월 반별 수강생·수강료 내역을 정리했습니다.\n담당하시는 반의 수강생과 수강료가 맞는지 확인 부탁드립니다.\n다른 점이 있으면 댓글로 남겨주시면 바로 확인하겠습니다.\n\n감사합니다." },
-    { day:25, title:"다음 달 수강료 발생",     detail:"ACA 청구 생성 → 수강료 안내 문자 발송",
-      tplName:"수강료 안내 문자", tplDraft:true,
-      tpl:"[{브랜드}] {다음달}월 수강료 안내\n\n안녕하세요, {브랜드}입니다.\n{다음달}월 수강료가 청구되었습니다.\n납부기한은 {다음달}월 1일입니다.\n\n문의: {대표번호}" }
+    { day:25, title:"다음 달 수강료 발생",     detail:"ACA 청구 생성 → 수강료 안내 문자 발송", sms:"fee" }
+  ],
+
+  // 문자 템플릿. {학생} {날짜} {시간} {수업} {강의실} {청구월} {브랜드} {지점} {대표번호} {지도} {수강생카페}
+  // {강의실}·{지도}가 비어 있으면 그 줄은 통째로 빠집니다
+  sms: [
+    { id:"first", name:"첫 등원 안내", draft:true, uses:["학생","날짜","시간","수업"],
+      text:"[{브랜드}] 첫 등원 안내\n\n안녕하세요, {학생} 학부모님. {브랜드}입니다.\n{학생} 학생의 첫 수업 일정을 안내드립니다.\n\n· 일시: {날짜} {시간}\n· 수업: {수업}\n· 강의실: {강의실}\n· 오시는 길: {지도}\n\n첫 수업일까지 수강료 납부 부탁드립니다.\n궁금하신 점은 언제든 연락 주세요.\n\n문의: {대표번호}" },
+    { id:"cafe", name:"수강생 카페 안내", draft:true, uses:["학생"],
+      text:"[{브랜드}] 수강생 카페 안내\n\n안녕하세요, {학생} 학부모님. {브랜드}입니다.\n수업 공지와 학원 소식은 {지점} 수강생 카페에 올라갑니다.\n아래 주소에서 가입하시고 공지를 확인해 주세요.\n\n{수강생카페}\n\n문의: {대표번호}" },
+    { id:"fee", name:"수강료 안내", draft:true, uses:["청구월"],
+      text:"[{브랜드}] {청구월}월 수강료 안내\n\n안녕하세요, {브랜드}입니다.\n{청구월}월 수강료가 청구되었습니다.\n납부기한은 {청구월}월 1일입니다.\n\n문의: {대표번호}" }
   ],
 
   // 학원 일정 (날짜: 이름). 시험·특강 개강·휴원일 등을 여기에 추가하세요.
@@ -445,8 +499,7 @@ const CONFIG = {
   holidays: {
     "2026-01-01":"신정","2026-02-16":"설날 연휴","2026-02-17":"설날","2026-02-18":"설날 연휴","2026-03-01":"삼일절","2026-03-02":"대체공휴일",
     "2026-05-05":"어린이날","2026-05-24":"부처님오신날","2026-05-25":"대체공휴일","2026-06-03":"지방선거","2026-06-06":"현충일",
-    "2026-08-15":"광복절","2026-08-17":"대체공휴일","2026-09-24":"추석 연휴","2026-09-25":"추석","2026-09-26":"추석 연휴",
-    "2026-07-17":"제헌절",
+    "2026-07-17":"제헌절","2026-08-15":"광복절","2026-08-17":"대체공휴일","2026-09-24":"추석 연휴","2026-09-25":"추석","2026-09-26":"추석 연휴",
     "2026-10-03":"개천절","2026-10-05":"대체공휴일","2026-10-09":"한글날","2026-12-25":"성탄절",
     "2027-01-01":"신정","2027-02-06":"설날 연휴","2027-02-07":"설날","2027-02-08":"설날 연휴","2027-02-09":"대체공휴일","2027-03-01":"삼일절",
     "2027-05-01":"노동절","2027-05-05":"어린이날","2027-05-13":"부처님오신날","2027-06-06":"현충일",
@@ -471,7 +524,9 @@ const CONFIG = {
   intro: {
     points:[["관리형 학원","수업만 하고 끝나지 않고, 학생 상태를 계속 점검해요."],["문제풀이 반복이 아닌 수업","개념과 생각하는 과정을 잡아줘요."],["전인격적 교육","성적과 함께 공부 습관과 태도를 봐요."]],
     say:"저희는 아이를 수업 시간에만 보는 곳이 아니라, 한 달 동안 어떻게 공부하고 있는지까지 같이 관리하는 학원이에요."
-  }
+  },
+
+  nextSteps: ["레벨테스트 예약","방문 상담 예약","체험 수업 예약","원장 상담 연결","콜백 예정","등록 완료","보류"]
 };
 
 const SUBJECTS = [
@@ -502,6 +557,22 @@ const FAQ = [
   { q:"환불은 어떻게 돼요?", a:"규정에 따라 처리된다고만 말하고, 구체적인 금액은 원장 확인 후 안내해요. 받은 요청은 팔로우업과 결제·환불 게시판에 꼭 남겨주세요." }
 ];
 
+/* 업무일지 칸 구성: 각 행이 카페 글 한 줄이 됩니다 (형식은 데스크업무규격.md 4번) */
+const ROWS = {
+  missed:  { cols:"72px minmax(0,1fr) minmax(0,1.6fr) 112px", add:"부재중 전화 추가",
+             fields:[{k:"time",ph:"시간",label:"시간"},{k:"tel",ph:"010-0000-0000",label:"번호"},{k:"text",ph:"내용",label:"내용"},{k:"cb",label:"콜백",opts:["","콜백 완료","콜백 예정","콜백 불필요"]}],
+             line:r=>[r.time,r.tel,r.text,r.cb].filter(Boolean).join(" / ") },
+  staff:   { cols:"120px minmax(0,1fr)", add:"소통 추가",
+             fields:[{k:"name",ph:"이름",label:"강사·직원"},{k:"text",ph:"소통 내용",label:"내용"}],
+             line:r=>r.name ? `${r.name}: ${r.text||""}`.trim() : (r.text||"") },
+  inquiry: { cols:"130px minmax(0,1.5fr) minmax(0,1fr)", add:"문의 추가",
+             fields:[{k:"who",ph:"예: 홍길동 母",label:"누가"},{k:"text",ph:"문의·컴플레인 내용",label:"내용"},{k:"done",ph:"어떻게 처리·답변했는지",label:"처리"}],
+             line:r=>[r.who,r.text].filter(Boolean).join(" / ") + (r.done?` - ${r.done}`:"") },
+  newc:    { cols:"110px 120px minmax(0,1fr) 150px", add:"상담 직접 추가",
+             fields:[{k:"name",ph:"이름",label:"이름"},{k:"sg",ph:"예: 목일중3",label:"학교학년"},{k:"subj",ph:"문의 과목",label:"과목"},{k:"next",label:"다음 단계",opts:["",...CONFIG.nextSteps]}],
+             line:r=>`${r.name||"-"}/ ${r.sg||"-"} / ${r.subj||"-"} 문의${r.next?" → "+r.next:""}/ 상담글 링크` }
+};
+
 /* ========================================================= */
 const KDAYS = ["일","월","화","수","목","금","토"];
 const MDAYS = ["월","화","수","목","금","토","일"];
@@ -512,196 +583,207 @@ const lastDay = d => new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const won = n => n.toLocaleString("ko-KR")+"원";
 const $ = id => document.getElementById(id);
+const clone = o => JSON.parse(JSON.stringify(o));
 const store = {
   get(k, fb){ try{ const v = localStorage.getItem(k); return v==null ? fb : JSON.parse(v) }catch(e){ return fb } },
   set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)) }catch(e){} }
 };
-let branch = store.get("desk:branch","mokdong");
+let branch = store.get("desk:branch","mokdong"); if (!CONFIG.branches[branch]) branch = "mokdong";
 let today = "";
+const B = () => CONFIG.branches[branch];
+const linkById = id => CONFIG.links.find(l=>l.id===id);
+const urlOf = id => linkById(id)?.url || "";
+const boardUrl = k => CONFIG.boards[k] || urlOf("cafe-ops");
 
 function rulesOn(d){
   const n = d.getDate(), last = lastDay(d);
   return CONFIG.billing.filter(r => r.day === n || (r.day==="last" && n===last) || (typeof r.day==="number" && r.day>last && n===last));
 }
-function fillTpl(rule, d){
-  const b = CONFIG.branches[branch], m = d.getMonth()+1;
-  const map = { "월":m, "다음달":m%12+1, "브랜드":b.brand, "지점":b.short, "대표번호":b.tel, "문자번호":CONFIG.smsTel };
-  return rule.tpl.replace(/\{(월|다음달|브랜드|지점|대표번호|문자번호)\}/g, (_,k)=>map[k]);
-}
-function nextDateOf(rule){
-  const now = new Date();
-  for (let i=0;i<=62;i++){ const d=new Date(now.getFullYear(), now.getMonth(), now.getDate()+i); if (rulesOn(d).includes(rule)) return d }
-  return now;
-}
-function tplBox(rule, d, key){
-  return `<div class="tpl" id="tpl-${key}">
-    <div class="tpl-h"><b>${esc(rule.tplName)}${rule.tplDraft?'<span class="draft">초안 · 원장 확인 필요</span>':""}</b>
-      <button class="btn primary" type="button" data-copytpl="${key}">문구 복사</button></div>
-    <pre class="paper" id="tplText-${key}">${esc(fillTpl(rule, d))}</pre></div>`;
-}
-document.addEventListener("click", e=>{
-  const b = e.target.closest("[data-copytpl]"); if(!b) return;
-  const pre = $("tplText-"+b.dataset.copytpl); copyText(pre.textContent, pre, "문구를 복사했어요");
-});
 function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("show"),1800) }
 function copyText(text, preEl, okMsg){
-  const fallback = () => { const r=document.createRange(); r.selectNodeContents(preEl); const s=getSelection(); s.removeAllRanges(); s.addRange(r); toast("선택됐어요. Ctrl+C로 복사하세요") };
+  const fallback = () => { if(!preEl) return; const r=document.createRange(); r.selectNodeContents(preEl); const s=getSelection(); s.removeAllRanges(); s.addRange(r); toast("선택됐어요. Ctrl+C로 복사하세요") };
   try { navigator.clipboard.writeText(text).then(()=>toast(okMsg), fallback) } catch(e){ fallback() }
 }
 
-/* ── clock & day ── */
+/* ── 시계 ── */
 function tick(){
   const now = new Date();
   $("time").textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
   $("date").textContent = `${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일 ${KDAYS[now.getDay()]}요일`;
   const k = ymd(now);
-  if (k !== today){ today = k; renderStrip(); calY=now.getFullYear(); calM=now.getMonth(); renderCal(); loadLog(); }
+  if (k !== today){ today = k; calY=now.getFullYear(); calM=now.getMonth(); renderCal(); renderToday(); loadLog(); renderTodayCs(); renderSms(); }
 }
 
-/* ── today strip ── */
+/* ── 오늘 띠 ── */
 function itemsOn(d){
   const k = ymd(d), out = [];
-  rulesOn(d).forEach(r=>out.push({type:"bill", title:r.title, detail:r.detail}));
+  rulesOn(d).forEach(r=>out.push({type:"bill", title:r.title}));
   if (CONFIG.events[k]) out.push({type:"event", title:CONFIG.events[k]});
   if (CONFIG.holidays[k]) out.push({type:"hol", title:CONFIG.holidays[k]});
   return out;
 }
-function renderStrip(){
-  const now = new Date(); const t = itemsOn(now);
-  let html = `<span class="lab">오늘</span><button type="button" class="prog" id="progBtn" aria-label="업무일지 진행 상황 보기"></button>`;
-  html += t.length
-    ? t.map(i=>`<div class="todo"><b>${i.type==="bill"?"💳 ":""}${esc(i.title)}</b>${i.detail?`<span>${esc(i.detail)}</span>`:""}</div>`).join("")
-    : `<div class="todo none"><b>오늘은 결제·정산 일정이 없어요</b></div>`;
-  const up = []; for (let i=1;i<=21 && up.length<4;i++){ const d=new Date(now); d.setDate(now.getDate()+i); itemsOn(d).forEach(x=>{ if(up.length<4) up.push({d,x,i}) }) }
-  if (up.length){ html += `<span class="lab" style="margin-left:6px">다가오는 일정</span>` + up.map(({d,x,i})=>`<div class="dchip ${i<=2?"soon":""}"><span class="dd">D-${i}</span><span class="when">${md(d)}</span><span>${esc(x.title)}</span></div>`).join("") }
-  $("strip").innerHTML = html;
-  renderProgress();
+function renderToday(){
+  const t = itemsOn(new Date());
+  $("titems").innerHTML = t.length ? t.map(i=>`<span class="titem ${i.type}">${esc(i.title)}</span>`).join("")
+    : `<span class="titem none">오늘은 결제·정산 일정이 없어요</span>`;
 }
 function renderProgress(){
-  const el = $("progBtn"); if (!el || !log) return;
+  if (!log.rows) return;
   const bills = rulesOn(new Date());
   const sN = [log.c1, log.c2, ...bills.map(r=>log.bills?.[r.title])].filter(Boolean).length, sT = 2 + bills.length;
   const dN = [log.d1, log.d2, log.d3].filter(Boolean).length;
-  const chip = (txt, done) => `<span class="pchip ${done?"done":""}">${txt}</span>`;
-  el.innerHTML = `<b style="margin-right:2px">업무일지</b>`
-    + chip(`시작 체크 ${sN}/${sT}`, sN===sT) + chip(`일일 체크 ${dN}/3`, dN===3)
-    + chip(log.posted ? "카페 게시 완료" : "카페 미게시", !!log.posted);
+  const n = consults().length;
+  const chip = (txt, cls) => `<span class="pchip ${cls}">${txt}</span>`;
+  $("prog").innerHTML = chip(`시작 체크 ${sN}/${sT}`, sN===sT?"done":"") + chip(`일일 체크 ${dN}/3`, dN===3?"done":"")
+    + (n ? chip(`상담 ${n}건`, "info") : "") + chip(log.posted ? "카페 게시 완료" : "카페 미게시", log.posted?"done":"");
 }
-$("strip").addEventListener("click", e=>{ if (e.target.closest("#progBtn")) setView("log") });
+$("prog").addEventListener("click", ()=>setView("log"));
 
-/* ── calendar (월요일 시작) ── */
+/* ── 달력 (월요일 시작) ── */
 let calY, calM, calStats = [];
 function renderCal(){
   const first = new Date(calY, calM, 1), days = new Date(calY, calM+1, 0).getDate();
-  const offset = (first.getDay()+6)%7;
-  const now = new Date(), tk = ymd(now);
+  const offset = (first.getDay()+6)%7, now = new Date(), tk = ymd(now);
   $("calTitle").textContent = `${calY}년 ${calM+1}월`;
   calStats = MDAYS.map(()=>({all:[], off:[]}));
-  const cells = [];
+  const cells = [], ev = [];
   for (let i=0;i<offset;i++) cells.push(`<div class="day blank"></div>`);
-  const ev = [];
   for (let d=1; d<=days; d++){
     const dt = new Date(calY, calM, d), k = ymd(dt), wd = (dt.getDay()+6)%7;
     const hol = CONFIG.holidays[k], e = CONFIG.events[k], b = rulesOn(dt);
     calStats[wd].all.push(d); if (hol) calStats[wd].off.push(d);
-    const cls = ["day"]; if (wd===5) cls.push("sat"); if (wd===6) cls.push("sun"); if (hol) cls.push("hol"); if (k===tk) cls.push("today");
-    const dots = (b.length?'<i class="b"></i>':"") + (e?'<i class="e"></i>':"") + (hol?'<i class="h"></i>':"");
+    const cls = ["day"]; if (wd===5) cls.push("sat"); if (wd===6) cls.push("sun"); if (hol) cls.push("hol"); if (k===tk) cls.push("today"); if (b.length) cls.push("bill");
     const label = [hol, e, ...b.map(x=>x.title)].filter(Boolean).join(", ");
-    cells.push(`<div class="${cls.join(" ")}" data-wd="${wd}" ${label?`title="${esc(label)}"`:""}>${d}<span class="dots">${dots}</span></div>`);
+    cells.push(`<div class="${cls.join(" ")}" data-wd="${wd}" ${label?`title="${esc(label)}"`:""}>${d}${(b.length||e)?"<i></i>":""}</div>`);
     if (hol) ev.push({d:dt, t:hol, c:"hol"});
     if (e) ev.push({d:dt, t:e, c:""});
     b.forEach(x=>ev.push({d:dt, t:x.title, c:"bill"}));
   }
-  $("calHead").innerHTML = MDAYS.map((w,i)=>`<button type="button" class="wd ${i===5?"sat":""} ${i===6?"sun":""}" id="wd-${i}" data-wd="${i}" aria-label="${calM+1}월 ${w}요일 횟수 보기">${w}</button>`).join("");
+  $("calHead").innerHTML = MDAYS.map((w,i)=>`<button type="button" class="wd ${i===5?"sat":""} ${i===6?"sun":""}" data-wd="${i}" aria-label="${calM+1}월 ${w}요일 횟수 보기">${w}</button>`).join("");
   $("calBody").innerHTML = cells.join("");
-  $("evlist").innerHTML = ev.length ? ev.map(x=>`<li><span class="d">${md(x.d)}</span><span class="${x.c}">${esc(x.t)}</span></li>`).join("") : "";
-  $("calInfo").innerHTML = "요일 위에 마우스를 올리면 이달에 그 요일이 몇 번인지 보여요.";
+  const t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  $("evlist").innerHTML = ev.map(x=>{ const dd = Math.round((x.d - t0)/864e5);
+    return `<li class="${dd<0?"past":""}"><span class="d">${md(x.d)}</span><span class="${x.c}">${esc(x.t)}</span><span class="dd">${dd===0?"오늘":dd>0?"D-"+dd:""}</span></li>` }).join("");
+  $("calInfo").textContent = "요일에 마우스를 올리면 이달 수업 횟수가 보여요.";
   hideTip();
 }
 function wdText(i){
   const s = calStats[i], n = s.all.length, off = s.off.length;
-  return { head:`${calM+1}월 ${MDAYS[i]}요일 <b>${n}회</b>`,
-           sub: off ? `공휴일 ${off}일 빼면 ${n-off}회 (${s.off.join("·")}일 휴일)` : "공휴일 없음",
-           dates: s.all.join("·")+"일" };
+  return { head:`${calM+1}월 ${MDAYS[i]}요일 <b>${n}회</b>`, sub: off ? `공휴일 빼면 ${n-off}회 (${s.off.join("·")}일 휴일)` : "공휴일 없음", dates: s.all.join("·")+"일" };
 }
 function showTip(btn){
   const i = +btn.dataset.wd, t = wdText(i), tip = $("tip"), cal = $("cal");
-  tip.innerHTML = `${t.head}<br>${t.sub}<br><span style="opacity:.75">${t.dates}</span>`;
+  tip.innerHTML = `${t.head}<br>${t.sub}<br><span style="color:var(--muted)">${t.dates}</span>`;
   tip.hidden = false;
-  const w = 200, cw = cal.clientWidth;
+  const w = 196, cw = cal.clientWidth;
   let x = btn.offsetLeft + btn.offsetWidth/2; x = Math.max(w/2, Math.min(cw - w/2, x));
   tip.style.left = x+"px"; tip.style.top = (btn.offsetTop + btn.offsetHeight)+"px";
   document.querySelectorAll(".wd").forEach(b=>b.classList.toggle("on", b===btn));
   document.querySelectorAll("#calBody .day").forEach(c=>c.classList.toggle("col", c.dataset.wd===String(i)));
-  $("calInfo").innerHTML = `${t.head} · ${t.sub}`;
 }
 function hideTip(){ $("tip").hidden = true; document.querySelectorAll(".wd").forEach(b=>b.classList.remove("on")); document.querySelectorAll("#calBody .day").forEach(c=>c.classList.remove("col")) }
-$("calHead").addEventListener("mouseover", e=>{ const b=e.target.closest(".wd"); if(b) showTip(b) });
-$("calHead").addEventListener("focusin", e=>{ const b=e.target.closest(".wd"); if(b) showTip(b) });
-$("calHead").addEventListener("click", e=>{ const b=e.target.closest(".wd"); if(b) showTip(b) });
+["mouseover","focusin","click"].forEach(ev=>$("calHead").addEventListener(ev, e=>{ const b=e.target.closest(".wd"); if(b) showTip(b) }));
 $("calHead").addEventListener("mouseleave", hideTip);
 $("calHead").addEventListener("focusout", hideTip);
 $("calPrev").addEventListener("click", ()=>{ calM--; if(calM<0){calM=11;calY--} renderCal() });
 $("calNext").addEventListener("click", ()=>{ calM++; if(calM>11){calM=0;calY++} renderCal() });
 $("calToday").addEventListener("click", ()=>{ const n=new Date(); calY=n.getFullYear(); calM=n.getMonth(); renderCal() });
 
-/* ── links ── */
-const linkUrl = l => store.get("desk:url:"+l.id, "") || l.url;
+/* ── 바로가기 ── */
 function renderLinks(){
-  const shown = CONFIG.links.filter(l=>!l.branch || l.branch===branch);
-  const groups = [...new Set(shown.map(l=>l.group))];
-  $("links").innerHTML = groups.map(g=>`<div class="lgroup"><h4>${g}</h4><div class="lrow">${
-    shown.filter(l=>l.group===g).map(l=>{ const u=linkUrl(l), w=l.wide?" wide":"";
-      return u ? `<a class="lk${w}" href="${esc(u)}" target="_blank" rel="noopener"><span>${esc(l.name)}</span><i>↗</i></a>`
-               : `<div class="lk unset${w}" title="주소 설정에서 입력하세요"><span>${esc(l.name)}</span><i>+</i></div>` }).join("")
-  }</div></div>`).join("");
-  $("linkset").innerHTML = CONFIG.links.map(l=>`<label for="url-${l.id}">${esc(l.group)} · ${esc(l.name)}<input class="inp" id="url-${l.id}" data-l="${l.id}" type="url" placeholder="https://" value="${esc(linkUrl(l))}"></label>`).join("")
-    + `<div class="hintline">입력한 주소는 이 컴퓨터에만 저장돼요. 모든 데스크에 똑같이 넣으려면 파일의 CONFIG를 고쳐주세요.</div>`;
-  const set = (aId, lid) => { const l=CONFIG.links.find(x=>x.id===lid), u=l&&linkUrl(l), a=$(aId); a.hidden=!u; if(u) a.href=u };
-  set("openLogBoard","ops-log"); set("openConsultBoard","ops-new");
+  const groups = [...new Set(CONFIG.links.map(l=>l.group))];
+  $("links").innerHTML = groups.map(g=>`<div class="lgroup"><h3>${esc(g)}</h3>${
+    CONFIG.links.filter(l=>l.group===g).map(l=>{ const cur = l.branch===branch ? " cur" : "";
+      return l.copy
+        ? `<button type="button" class="lk${cur}" data-copy="${esc(l.copy)}" title="${esc(l.copy)}"><span>${esc(l.name)}</span><i>복사</i></button>`
+        : `<a class="lk${cur}" href="${esc(l.url)}" target="_blank" rel="noopener"><span>${esc(l.name)}</span><i>↗</i></a>` }).join("")
+  }</div>`).join("");
+  $("openLogBoard").href = boardUrl("log");
+  $("openConsultBoard").href = boardUrl("consult");
+  const go = (id, name) => { const u = urlOf(id); return u ? `<a class="btn sm" href="${esc(u)}" target="_blank" rel="noopener">${esc(name)} ↗</a>` : "" };
+  $("go-d1").innerHTML = go(B().blog, "블로그");
+  $("go-d2").innerHTML = `<a class="btn sm" href="${esc(boardUrl("first"))}" target="_blank" rel="noopener">운영팀 카페 ↗</a>`;
+  $("go-d3").innerHTML = go(B().cafe, "수강생 카페") + go(B().drive, "출석시트");
 }
-$("linkset").addEventListener("change", e=>{ const id=e.target.dataset.l; if(!id) return; store.set("desk:url:"+id, e.target.value.trim()); renderLinks() });
-$("toggleLinks").addEventListener("click", ()=>{ const s=$("linkset"); s.hidden=!s.hidden; $("toggleLinks").textContent = s.hidden?"주소 설정":"설정 닫기" });
+$("links").addEventListener("click", e=>{ const b=e.target.closest("[data-copy]"); if(b){ e.preventDefault(); copyText(b.dataset.copy, null, "이메일 주소를 복사했어요") } });
 
 /* ── 업무일지 ── */
-const LOG_FIELDS = ["writer","shift","missed","unwritten","unrecorded","staff","inquiry","new","follow","ceo","ref","etc"];
-const LOG_CHECKS = ["c1","c2","d1","d2","d3"];
-const LOG_EXAMPLE = {
-  writer:"", shift:"오후 근무", c1:true, c2:true, d1:true, d2:true, d3:true, missed:"", unwritten:"", unrecorded:"", staff:"",
-  inquiry:"(예시) 홍길동 母 / 수학 결석으로 인한 수업료 변동 여부 문의 - 보충 진행O, 변동X 답변드림",
-  new:"(예시) 김하준/ 목일중3 / 영어정규 예비고1반 문의/ 상담글 링크", follow:"",
+const LOG_TEXT = ["writer","shift","unwritten","unrecorded","follow","ceo","ref","etc"];
+const LOG_CHECKS = ["c1","c2","d1","d2","d3","posted"];
+const blankLog = () => ({ shift:"오후 근무", bills:{}, rows:{ missed:[{}], staff:[{}], inquiry:[{}], newc:[] } });
+const LOG_EXAMPLE = Object.assign(blankLog(), {
+  c1:true, c2:true, d1:true, d2:true, d3:true,
+  rows:{ missed:[{}], staff:[{}],
+    inquiry:[{ who:"(예시) 홍길동 母", text:"수학 결석으로 인한 수업료 변동 여부 문의", done:"보충 진행O, 변동X 답변드림" }],
+    newc:[] },
   ceo:"(예시) 영수증 정리", ref:"(예시) 토요일 보강 > 2강의실 배정, 담당 강사 소통 완료",
-  etc:"(예시) 원내 A4 용지 소진 → 1세트 구매 7,200원 (영수증 카페 첨부)", bills:{}
-};
+  etc:"(예시) 원내 A4 용지 소진 → 1세트 구매 7,200원 (영수증 카페 첨부)"
+});
 let log = {};
 const logKey = () => `desk:log:${branch}:${today}`;
+function migrate(l){   // 예전 형식(칸 하나에 여러 줄)으로 저장된 일지를 새 칸으로 옮김
+  l.bills = l.bills || {};
+  l.rows = l.rows || { missed:[], staff:[], inquiry:[], newc:[] };
+  [["missed","missed","text"],["staff","staff","text"],["inquiry","inquiry","text"],["new","newc","name"]].forEach(([old, sec, k])=>{
+    if (typeof l[old]==="string"){ String(l[old]).split("\n").map(s=>s.replace(/^-\s*/,"").trim()).filter(Boolean).forEach(s=>l.rows[sec].push(sec==="newc"?{name:s}:{[k]:s})); delete l[old] }
+    if (!Array.isArray(l.rows[sec])) l.rows[sec] = [];
+  });
+  return l;
+}
 function loadLog(){
   if (!today) return;
   const saved = store.get(logKey(), null), firstEver = !store.get("desk:seenLog", false);
-  log = saved || (firstEver ? JSON.parse(JSON.stringify(LOG_EXAMPLE)) : { shift:"오후 근무", bills:{} });
-  if (!log.bills) log.bills = {};
+  log = migrate(saved || (firstEver ? clone(LOG_EXAMPLE) : blankLog()));
   $("exampleBanner").hidden = !(!saved && firstEver);
-  LOG_FIELDS.forEach(f=>{ const el=$("lg-"+f); if(el) el.value = log[f] || (f==="shift"?"오후 근무":"") });
+  LOG_TEXT.forEach(f=>{ $("lg-"+f).value = log[f] || (f==="shift"?"오후 근무":"") });
   LOG_CHECKS.forEach(c=>{ $("lg-"+c).checked = !!log[c] });
-  $("lg-posted").checked = !!log.posted;
-  $("desks").innerHTML = CONFIG.branches[branch].desks.map(n=>`<option value="${esc(n)}">`).join("");
-  const nowD = new Date();
-  $("billChecks").innerHTML = rulesOn(nowD).map((r,i)=>`<div class="billrow">
-      <label class="ck bill" for="lg-b${i}"><input type="checkbox" id="lg-b${i}" data-bill="${esc(r.title)}" ${log.bills[r.title]?"checked":""}><div>💳 ${esc(r.title)}<small>${esc(r.detail)}</small></div></label>
-      ${r.tpl?`<button class="btn" type="button" data-showtpl="b${i}" aria-expanded="false">문구 보기</button>`:""}</div>
-      ${r.tpl?`<div id="wrap-b${i}" hidden style="margin-top:6px">${tplBox(r, nowD, "b"+i)}</div>`:""}`).join("");
+  $("desks").innerHTML = B().desks.map(n=>`<option value="${esc(n)}">`).join("");
+  renderBills();
+  Object.keys(ROWS).forEach(renderRows);
   $("logStatus").textContent = "";
   renderLog();
 }
 function saveLog(){ store.set(logKey(), log); store.set("desk:seenLog", true); const n=new Date(); $("logStatus").textContent = `${pad(n.getHours())}:${pad(n.getMinutes())} 임시 저장` }
+
+function fillBillTpl(rule, d){
+  const m = d.getMonth()+1, map = { "월":m, "지점":B().short, "브랜드":B().brand, "대표번호":B().tel };
+  return rule.tpl.replace(/\{(월|지점|브랜드|대표번호)\}/g, (_,k)=>map[k]);
+}
+function renderBills(){
+  const now = new Date();
+  $("billChecks").innerHTML = rulesOn(now).map((r,i)=>`
+    <div class="ck bill"><input type="checkbox" id="lg-b${i}" data-bill="${esc(r.title)}" ${log.bills[r.title]?"checked":""}><label for="lg-b${i}">${esc(r.title)}<small>${esc(r.detail)}</small></label>
+      <span class="go">${r.tpl?`<button class="btn sm" type="button" data-showtpl="${i}">글 문구 보기</button>`:""}${r.sms?`<button class="btn sm" type="button" data-gosms="${r.sms}">문자 템플릿</button>`:""}</span></div>
+    ${r.tpl?`<div class="tplwrap" id="tw-${i}" hidden><div class="hint">${esc(r.tplName)}${r.tplDraft?'<span class="draft">초안 · 원장 확인 필요</span>':""}</div>
+      <pre class="paper" id="tt-${i}">${esc(fillBillTpl(r, now))}</pre><div><button class="btn primary" type="button" data-copytt="${i}">문구 복사</button></div></div>`:""}`).join("");
+}
+
+/* 행 입력 */
+function rowEmpty(sec, r){ return ROWS[sec].fields.filter(f=>!f.opts).every(f=>!(r[f.k]||"").trim()) }
+function renderRows(sec){
+  const def = ROWS[sec], list = log.rows[sec], el = $("rows-"+sec);
+  el.style.setProperty("--cols", def.cols);
+  const head = list.length ? `<div class="rhead">${def.fields.map(f=>`<span>${f.label}</span>`).join("")}<span></span></div>` : "";
+  el.innerHTML = head + list.map((r,i)=>`<div class="r">${def.fields.map(f=>{
+      const id = `rw-${sec}-${i}-${f.k}`, a = `id="${id}" data-sec="${sec}" data-i="${i}" data-k="${f.k}" aria-label="${f.label}"`;
+      return f.opts ? `<select class="inp" ${a}>${f.opts.map(o=>`<option value="${esc(o)}" ${(r[f.k]||"")===o?"selected":""}>${o||"선택"}</option>`).join("")}</select>`
+                    : `<input class="inp" ${a} placeholder="${esc(f.ph)}" value="${esc(r[f.k]||"")}">` }).join("")}
+      <button type="button" class="del" data-del="${sec}" data-i="${i}" aria-label="이 줄 지우기">×</button></div>`).join("")
+    + `<button type="button" class="btn ghost add" data-add="${sec}">+ ${def.add}</button>`;
+}
+function rowLines(sec){
+  return log.rows[sec].filter(r=>!rowEmpty(sec, r)).map(r=>"- "+ROWS[sec].line(r));
+}
 function lines(t){
   const arr = String(t||"").split("\n").map(s=>s.trim()).filter(Boolean);
-  return arr.length ? arr.map(s=>/^[-*·\[]/.test(s)?s:"- "+s).join("\n") : "-";
+  return arr.length ? arr.map(s=>/^[-*·\[]/.test(s)?s:"- "+s) : [];
 }
+const orDash = a => a.length ? a.join("\n") : "-";
+
 function logText(){
-  const now = new Date(), cb = v => v ? "[✅]" : "[  ]", b = CONFIG.branches[branch], L = [];
+  const now = new Date(), cb = v => v ? "[✅]" : "[  ]", L = [];
   L.push(`📋 데스크 업무일지`);
-  L.push(`${now.getFullYear()}.${pad(now.getMonth()+1)}.${pad(now.getDate())}(${KDAYS[now.getDay()]}) ${b.short} · ${log.shift||"-"} · ${(log.writer||"").trim()||"-"}`);
+  L.push(`${now.getFullYear()}.${pad(now.getMonth()+1)}.${pad(now.getDate())}(${KDAYS[now.getDay()]}) ${B().short} · ${log.shift||"-"} · ${(log.writer||"").trim()||"-"}`);
   L.push("");
   L.push(`✅ 시작 체크 (근무 시작 시 필수)`);
   L.push(`${cb(log.c1)} 부재중 전화 확인 완료`);
@@ -709,7 +791,7 @@ function logText(){
   L.push(`  └ 환불/미납 미처리 있으면 아래 '팔로우업'에 꼭 기재`);
   rulesOn(now).forEach(r=>L.push(`${cb(log.bills[r.title])} 💳 ${r.title} (${r.detail})`));
   L.push(`————————————————`);
-  L.push(`📞 부재중 전화`, lines(log.missed), "");
+  L.push(`📞 부재중 전화`, orDash(rowLines("missed")), "");
   L.push(`✅ 일일 체크 (근무 시작 시 필수)`);
   L.push(`${cb(log.d1)} 해당관 블로그 최근 게시물 정독!`);
   L.push(`${cb(log.d2)} <첫 등원> 게시판 확인 후 오늘자 첫 등원 학생 확인 (강의실 안내 준비)`);
@@ -718,64 +800,79 @@ function logText(){
   L.push(`2. 미기입 강사 : ${(log.unrecorded||"").trim()||"-"}`);
   L.push(`*모두 연락 부탁드립니다!`);
   L.push(`————————————————`);
-  L.push(`👥 강사·직원 소통`, lines(log.staff), "");
-  L.push(`🙋 문의·컴플레인 (학생/학부모)`, lines(log.inquiry), "");
-  L.push(`🆕 신규 상담`, lines(log.new), "");
-  L.push(`🔁 팔로우업 (다음 근무자 숙지/대표·원장 지시사항은 모두 입력)`, lines(log.follow), "");
-  L.push(`[대표님/원장님 지시사항]`, lines(log.ceo), "");
-  L.push(`[참고]`, lines(log.ref), "");
-  L.push(`📝 기타`, lines(log.etc));
+  L.push(`👥 강사·직원 소통`, orDash(rowLines("staff")), "");
+  L.push(`🙋 문의·컴플레인 (학생/학부모)`, orDash(rowLines("inquiry")), "");
+  L.push(`🆕 신규 상담`, orDash([...consults().map(c=>consultLine(c.data)), ...rowLines("newc")]), "");
+  L.push(`🔁 팔로우업 (다음 근무자 숙지/대표·원장 지시사항은 모두 입력)`, orDash(lines(log.follow)), "");
+  L.push(`[대표님/원장님 지시사항]`, orDash(lines(log.ceo)), "");
+  L.push(`[참고]`, orDash(lines(log.ref)), "");
+  L.push(`📝 기타`, orDash(lines(log.etc)));
   return L.join("\n");
 }
 function renderLog(){
   $("logOut").textContent = logText();
   const startDone = log.c1 && log.c2 && rulesOn(new Date()).every(r=>log.bills[r.title]);
   const dailyDone = log.d1 && log.d2 && log.d3;
-  const setB = (id, done) => { const e=$(id); e.className = done?"ok":"req"; e.textContent = done?"완료":"근무 시작 시 필수" };
+  const setB = (id, done) => { const e=$(id); e.className = "badge"+(done?" done":""); e.textContent = done?"완료":"근무 시작 시 필수" };
   setB("badge-start", startDone); setB("badge-daily", dailyDone);
   $("postedBox").classList.toggle("on", !!log.posted);
   $("postedText").textContent = log.posted ? "카페 업무일지 게시판에 올렸어요 ✓" : "카페 업무일지 게시판에 올렸어요";
+  const cs = consults();
+  $("autoConsults").innerHTML = cs.map(c=>`<div class="autoline"><span>${esc(consultLine(c.data).slice(2))}</span><small>${esc(c.at)} 저장</small><button class="btn sm" type="button" data-opencs="${c.id}">열기</button></div>`).join("");
+  $("linkHint").hidden = !(cs.length || rowLines("newc").length);
   renderProgress();
 }
-$("view-log").addEventListener("click", e=>{
-  const b = e.target.closest("[data-showtpl]"); if(!b) return;
-  const w = $("wrap-"+b.dataset.showtpl); w.hidden = !w.hidden;
-  b.setAttribute("aria-expanded", !w.hidden); b.textContent = w.hidden ? "문구 보기" : "문구 닫기";
-});
 function onLogInput(e){
-  const id = e.target.id || ""; if (!id.startsWith("lg-")) return;
-  if (e.target.type==="checkbox"){ if (e.target.dataset.bill) log.bills[e.target.dataset.bill]=e.target.checked; else log[id.slice(3)]=e.target.checked }
-  else log[id.slice(3)] = e.target.value;
+  const t = e.target, id = t.id || "";
+  if (t.dataset.sec){ log.rows[t.dataset.sec][+t.dataset.i][t.dataset.k] = t.value }
+  else if (id.startsWith("lg-")){
+    if (t.type==="checkbox"){ if (t.dataset.bill) log.bills[t.dataset.bill]=t.checked; else log[id.slice(3)]=t.checked }
+    else log[id.slice(3)] = t.value;
+  } else return;
   $("exampleBanner").hidden = true; saveLog(); renderLog();
 }
 $("view-log").addEventListener("input", onLogInput);
 $("view-log").addEventListener("change", onLogInput);
+$("view-log").addEventListener("click", e=>{
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.dataset.add){ const s=t.dataset.add; log.rows[s].push({}); renderRows(s); saveLog(); renderLog();
+    const last = $("rows-"+s).querySelectorAll(".r"); last[last.length-1]?.querySelector("input")?.focus() }
+  else if (t.dataset.del){ const s=t.dataset.del; log.rows[s].splice(+t.dataset.i,1); renderRows(s); saveLog(); renderLog() }
+  else if (t.dataset.showtpl){ const w=$("tw-"+t.dataset.showtpl); w.hidden=!w.hidden; t.textContent = w.hidden?"글 문구 보기":"문구 닫기" }
+  else if (t.dataset.copytt){ const p=$("tt-"+t.dataset.copytt); copyText(p.textContent, p, "문구를 복사했어요") }
+  else if (t.dataset.gosms){ setView("sms") }
+  else if (t.dataset.opencs){ openConsult(t.dataset.opencs) }
+});
 $("copyLog").addEventListener("click", ()=>copyText(logText(), $("logOut"), "업무일지를 복사했어요"));
-$("clearLog").addEventListener("click", ()=>{ log={shift:"오후 근무",bills:{}}; saveLog(); loadLog() });
+$("clearLog").addEventListener("click", ()=>{ log = blankLog(); store.set("desk:seenLog", true); saveLog(); loadLog() });
 
 /* ── 상담 도우미 ── */
-const CS_FIELDS = ["name","school","grade","route","from","sib","score","now","concern","time","goal","tel","callback","next","memo","link"];
-const CS_EXAMPLE = { name:"김하준(예시)",school:"목일중", grade:"중3", route:"전화", from:"지인 소개", sib:"",
+const CS_FIELDS = ["name","school","grade","route","from","sib","score","now","concern","time","goal","tel","callback","next","memo"];
+const CS_EXAMPLE = { name:"김하준(예시)", school:"목일중", grade:"중3", route:"전화", from:"지인 소개", sib:"",
   score:"2학기 중간 영어 82점", now:"동네 영어학원 다니는 중", concern:"고등학교 가면 영어 내신이 걱정, 문법이 약하다고 함",
-  time:"화·목 저녁 가능", goal:"고1 첫 내신 2등급", tel:"", callback:"내일 오후 6시 이후", next:"레벨테스트 예약", memo:"", link:"", subjects:{ eng:"2" } };
+  time:"화·목 저녁 가능", goal:"고1 첫 내신 2등급", tel:"", callback:"내일 오후 6시 이후", next:"레벨테스트 예약", memo:"", subjects:{ eng:"2" }, example:true };
 let cs = {};
+const csKey = () => `desk:consults:${branch}:${today}`;
+const consults = () => store.get(csKey(), []);
+$("cs-next").innerHTML = `<option value="">선택</option>` + CONFIG.nextSteps.map(s=>`<option>${s}</option>`).join("");
+
 function loadConsult(){
   const saved = store.get("desk:consult", null);
-  cs = saved || JSON.parse(JSON.stringify(CS_EXAMPLE));
+  cs = saved || clone(CS_EXAMPLE);
   if (!cs.subjects) cs.subjects = {};
-  $("consultBanner").hidden = !!saved;
-  CS_FIELDS.forEach(f=>{ const el=$("cs-"+f); if(el) el.value = cs[f] || (f==="route"?"전화":"") });
+  $("consultBanner").hidden = !cs.example;
+  CS_FIELDS.forEach(f=>{ $("cs-"+f).value = cs[f] || (f==="route"?"전화":"") });
   renderConsult();
 }
-function saveConsult(){ store.set("desk:consult", cs); $("consultBanner").hidden = true }
+function keepConsult(){ store.set("desk:consult", cs) }
 function feeRange(){ let min=0,max=0; Object.values(cs.subjects).forEach(p=>{ const f=CONFIG.fees[p]; if(f){min+=f.min;max+=f.max} }); return {min,max} }
 const fmtRange = r => r.min===r.max ? won(r.min) : `${won(r.min)} ~ ${won(r.max)}`;
 const subjName = id => SUBJECTS.find(s=>s.id===id)?.name || id;
 function consultText(){
-  const now = new Date(), b = CONFIG.branches[branch], v = x => (x||"").trim() || "-";
+  const now = new Date(), v = x => (x||"").trim() || "-";
   const subs = Object.entries(cs.subjects).map(([id,p])=>`${subjName(id)}(${p==="2"?"주2회":"주1회"})`).join(", ") || "-";
   const L = [
-    `[신규 상담] ${md(now)} ${b.short} · ${cs.route||"전화"}`, ``,
+    `[신규 상담] ${md(now)} ${B().short} · ${cs.route||"전화"}`, ``,
     `학생: ${v(cs.name)} (${[cs.school,cs.grade].filter(Boolean).join(" ")||"-"})`,
     `문의 과목: ${subs}`,
     `예상 수업료: ${Object.keys(cs.subjects).length?fmtRange(feeRange())+" / 월":"-"}`,
@@ -788,102 +885,156 @@ function consultText(){
   if (Object.keys(cs.subjects).length>=3) L.push(`메이트 올케어 대상 (3과목 이상)`);
   return L.join("\n");
 }
-function consultLine(){
-  const subs = Object.keys(cs.subjects).map(subjName).join("·");
-  return `- ${cs.name||"(이름)"}/ ${cs.school||""}${cs.grade||""} / ${subs||"과목"} 문의${cs.next?" → "+cs.next:""}${cs.link?"/ "+cs.link:""}`;
+function consultLine(c){
+  const subs = Object.keys(c.subjects||{}).map(subjName).join("·");
+  const sc = c.school||"", gr = c.grade||"";
+  const sg = sc && gr && /^[중고]/.test(gr) && sc.endsWith(gr[0]) ? sc+gr.slice(1) : sc+gr;   // 목일중 + 중3 → 목일중3
+  return `- ${c.name||"(이름)"}/ ${sg||"-"} / ${subs||"과목"} 문의${c.next?" → "+c.next:""}/ 상담글 링크`;
+}
+function renderTodayCs(){
+  const list = consults();
+  $("todayCs").innerHTML = `<b style="font-weight:500">오늘 저장한 상담 ${list.length}건</b>`
+    + (list.length ? list.map(c=>`<span class="cschip ${cs.savedId===c.id?"on":""}">${esc(c.data.name||"(이름)")} · ${esc(c.at)}<button type="button" data-opencs="${c.id}" aria-label="불러오기">열기</button><button type="button" data-delcs="${c.id}" aria-label="삭제">×</button></span>`).join("")
+                   : `<span class="hint">저장하고 복사를 누르면 여기에 쌓이고, 업무일지에도 들어가요.</span>`);
 }
 function renderConsult(){
-  $("subjChips").innerHTML = SUBJECTS.map(s=>`<button type="button" class="chip" id="chip-${s.id}" data-s="${s.id}" aria-pressed="${!!cs.subjects[s.id]}">${s.name}</button>`).join("");
+  $("subjChips").innerHTML = SUBJECTS.map(s=>`<button type="button" class="chip" data-s="${s.id}" aria-pressed="${!!cs.subjects[s.id]}">${s.name}</button>`).join("");
   const sel = Object.keys(cs.subjects);
   $("plan").innerHTML = sel.length ? sel.map(id=>{ const p=cs.subjects[id], f=CONFIG.fees[p];
-    return `<div class="plan-row"><b>${subjName(id)}</b>
+    return `<div class="plan-row"><b style="font-weight:500">${subjName(id)}</b>
       <select id="plan-${id}" data-p="${id}" aria-label="${subjName(id)} 수업 형태">
         <option value="2" ${p==="2"?"selected":""}>${CONFIG.fees["2"].label}</option>
         <option value="1" ${p==="1"?"selected":""}>${CONFIG.fees["1"].label}</option></select>
       <span class="num">${fmtRange(f)}</span></div>` }).join("")
     + `<div class="total"><span>월 예상 수업료</span><span class="num">${fmtRange(feeRange())}</span></div>
-       <div class="hintline">정규반 기준 금액이에요. 특강·클리닉·논술은 반마다 달라서 시간표를 확인하고 안내하세요.</div>`
-    : `<div class="hintline">과목을 누르면 수업 형태와 예상 수업료가 나와요.</div>`;
+       <div class="hint">정규반 기준이에요. 특강·클리닉·논술은 반마다 달라서 시간표를 확인하고 안내하세요.</div>`
+    : `<div class="hint">과목을 누르면 수업 형태와 예상 수업료가 나와요.</div>`;
   $("consultOut").textContent = consultText();
+  renderTodayCs();
   renderGuide();
 }
 function subjCard(s){
   return `<div class="gcard"><h4>${esc(s.name)}${s.draft?'<span class="draft">초안</span>':""}</h4><ul>${s.points.map(p=>`<li>${esc(p)}</li>`).join("")}</ul>
     <div class="say"><b>꼭 물어볼 것</b>${esc(s.ask)}${s.say?`<br><br><b>이렇게 말해보세요</b>"${esc(s.say)}"`:""}</div></div>`;
 }
-function faqHtml(prefix){
-  return FAQ.map((f,i)=>`<details class="faq" id="${prefix}-${i}"><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join("");
-}
+const faqHtml = p => FAQ.map((f,i)=>`<details class="faq" id="${p}-${i}"><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join("");
 function renderGuide(){
   const sel = Object.keys(cs.subjects), g = cs.grade, month = new Date().getMonth()+1, cards = [];
   const need = [["name","학생 이름"],["grade","학년"],["school","학교"],["time","가능한 요일·시간"],["score","최근 성적"],["tel","학부모 연락처"],["callback","콜백 희망 시간"],["from","알게 된 경로"]]
     .filter(([f])=>!(cs[f]||"").trim()).map(([,n])=>n);
   if (!sel.length) need.unshift("문의 과목");
   cards.push(need.length
-    ? `<div class="gcard miss"><h4>아직 못 받은 정보 · ${need.length}개</h4><ul>${need.map(n=>`<li>${n}</li>`).join("")}</ul></div>`
-    : `<div class="gcard hl"><h4>필수 정보를 다 받았어요</h4><div class="hintline">상담 기록을 복사해서 카페에 올리고, 링크를 업무일지에 남겨주세요.</div></div>`);
-  if (sel.length>=3) cards.push(`<div class="gcard hl"><h4><span class="pill">추천</span> 메이트 올케어 안내 대상</h4>
+    ? `<div class="gcard miss"><h4>아직 못 받은 정보 ${need.length}개</h4><ul>${need.map(n=>`<li>${n}</li>`).join("")}</ul></div>`
+    : `<div class="gcard hl"><h4>필수 정보를 다 받았어요</h4><div class="hint">저장하고 복사한 뒤 신규상담 게시판에 올려주세요.</div></div>`);
+  if (sel.length>=3) cards.push(`<div class="gcard hl"><h4>메이트 올케어 안내 대상</h4>
     <ul><li>3과목 이상 수강생을 위한 원장 직속 관리 프로그램</li><li>원장이 학부모님과 직접 소통하며 학생 상황을 주기적으로 점검</li><li>과목별 강사 피드백을 모아 입시 전략 설계</li></ul>
     <div class="say">"세 과목 이상 함께 하시면 원장님이 직접 전체 학습 상황을 보고 입시 방향까지 같이 잡아드리는 올케어 프로그램으로 관리돼요."</div></div>`);
-  else if (sel.length===2) cards.push(`<div class="gcard"><h4>한 과목만 더하면 올케어 대상</h4><div class="hintline">다른 과목 고민도 있는지 자연스럽게 여쭤보세요. 억지로 권하지는 않습니다.</div></div>`);
+  else if (sel.length===2) cards.push(`<div class="gcard"><h4>한 과목만 더하면 올케어 대상</h4><div class="hint">다른 과목 고민도 있는지 자연스럽게 여쭤보세요. 억지로 권하지는 않습니다.</div></div>`);
   const DR = '<span class="draft">초안</span>';
   if (g==="중3" && month>=9) cards.push(`<div class="gcard"><h4>예비고1 시즌${DR}</h4><ul><li>고등학교 첫 내신을 어떻게 준비할지가 학부모님의 가장 큰 관심사예요.</li><li>고1 첫 시험 일정과 예비고1반 개강 시기를 같이 안내하세요.</li><li>배정 예정 고등학교도 꼭 여쭤보세요.</li></ul></div>`);
   if (g==="고3"||g==="N수") cards.push(`<div class="gcard"><h4>${g} 상담 포인트${DR}</h4><ul><li>수시·정시 중 어느 쪽 중심인지, 논술 지원 계획이 있는지 확인하세요.</li><li>입시 전략 질문은 원장 상담으로 연결하세요.</li></ul></div>`);
   if (g==="고1"||g==="고2") cards.push(`<div class="gcard"><h4>${g} 상담 포인트${DR}</h4><ul><li>학교 내신 시험 범위와 일정을 먼저 확인하세요.</li><li>수시를 생각하는지 함께 여쭤보세요.</li></ul></div>`);
   sel.forEach(id=>cards.push(subjCard(SUBJECTS.find(x=>x.id===id))));
-  cards.push(`<div class="gcard"><h4>이런 질문이 오면</h4>${faqHtml("faq")}
-    <div class="draftnote">원장님이 확인하고 학원 기준에 맞게 고쳐야 하는 초안이에요.</div></div>`);
+  cards.push(`<div class="gcard"><h4>이런 질문이 오면${DR}</h4>${faqHtml("faq")}</div>`);
   $("guide").innerHTML = cards.join("");
 }
 function onCsInput(e){
   const id = e.target.id||"";
-  if (id.startsWith("cs-")){ cs[id.slice(3)] = e.target.value; saveConsult(); $("consultOut").textContent=consultText(); renderGuide() }
-  else if (e.target.dataset.p && e.type==="change"){ cs.subjects[e.target.dataset.p]=e.target.value; saveConsult(); renderConsult() }
+  if (id.startsWith("cs-")){ cs[id.slice(3)] = e.target.value; delete cs.example; $("consultBanner").hidden = true; keepConsult(); $("consultOut").textContent=consultText(); renderGuide() }
+  else if (e.target.dataset.p && e.type==="change"){ cs.subjects[e.target.dataset.p]=e.target.value; keepConsult(); renderConsult() }
 }
 $("view-consult").addEventListener("input", onCsInput);
 $("view-consult").addEventListener("change", onCsInput);
 $("subjChips").addEventListener("click", e=>{
   const s = e.target.dataset.s; if(!s) return;
   if (cs.subjects[s]) delete cs.subjects[s]; else cs.subjects[s] = "2";
-  saveConsult(); renderConsult();
+  keepConsult(); renderConsult();
 });
-$("copyConsult").addEventListener("click", ()=>copyText(consultText(), $("consultOut"), "상담 기록을 복사했어요"));
-$("toLog").addEventListener("click", ()=>{
-  log.new = ((log.new||"").split("\n").filter(l=>!/^\(예시\)/.test(l.trim())).join("\n").trim() + "\n" + consultLine()).trim();
-  $("lg-new").value = log.new; saveLog(); renderLog(); toast("업무일지 신규 상담에 추가했어요");
+$("saveConsult").addEventListener("click", ()=>{
+  copyText(consultText(), $("consultOut"), "상담 기록을 복사하고 업무일지에 넣었어요");
+  const list = consults(), n = new Date(), at = `${pad(n.getHours())}:${pad(n.getMinutes())}`;
+  const data = clone(cs); delete data.savedId;
+  const hit = list.find(c=>c.id===cs.savedId);
+  if (hit){ hit.data = data; hit.at = at } else { cs.savedId = "c"+Date.now(); list.push({ id:cs.savedId, at, data }) }
+  store.set(csKey(), list); keepConsult(); renderTodayCs(); renderLog();
 });
-const blankConsult = () => { cs = { route:"전화", subjects:{} }; saveConsult(); loadConsult() };
+function openConsult(id){
+  const c = consults().find(x=>x.id===id); if (!c) return;
+  cs = Object.assign(clone(c.data), { savedId:id }); keepConsult();
+  CS_FIELDS.forEach(f=>{ $("cs-"+f).value = cs[f] || (f==="route"?"전화":"") });
+  $("consultBanner").hidden = true; renderConsult(); setView("consult");
+}
+$("todayCs").addEventListener("click", e=>{
+  const o = e.target.closest("[data-opencs]"), d = e.target.closest("[data-delcs]");
+  if (o) openConsult(o.dataset.opencs);
+  if (d){ store.set(csKey(), consults().filter(c=>c.id!==d.dataset.delcs)); if (cs.savedId===d.dataset.delcs) delete cs.savedId; keepConsult(); renderTodayCs(); renderLog(); toast("업무일지에서도 뺐어요") }
+});
+const blankConsult = () => { cs = { route:"전화", subjects:{} }; keepConsult(); loadConsult(); $("cs-name").focus() };
 $("resetConsult").addEventListener("click", blankConsult);
 $("clearConsult").addEventListener("click", blankConsult);
 
 /* ── 상담 참고 ── */
 function renderRef(){
-  const b = CONFIG.branches, cur = b[branch], other = branch==="mokdong"?b.gimpo:b.mokdong;
+  const b = CONFIG.branches, cur = B(), other = branch==="mokdong"?b.gimpo:b.mokdong;
   const kv = (k,v) => v?`<dt>${k}</dt><dd>${esc(v)}</dd>`:"";
   const fee = f => f.min===f.max ? won(f.min) : `${f.min.toLocaleString("ko-KR")}~${won(f.max)}`;
-  const tpls = CONFIG.billing.filter(r=>r.tpl).map((r,i)=>{ const d=nextDateOf(r); return `<div><div class="hintline" style="margin-bottom:4px">${md(d)} ${esc(r.title)}</div>${tplBox(r, d, "r"+i)}</div>` }).join("");
   $("refgrid").innerHTML = `
     <div class="ref"><h3>정규반 수업료</h3>
       <div class="tbl"><table><thead><tr><th>수업 형태</th><th>월 횟수</th><th>월 수업료</th></tr></thead><tbody>
         ${Object.keys(CONFIG.fees).sort((a,b)=>b-a).map(k=>CONFIG.fees[k]).map(f=>`<tr><td>${esc(f.full)}</td><td>${esc(f.count)}</td><td class="num">${fee(f)}</td></tr>`).join("")}</tbody></table></div>
       <ul style="margin-top:10px">${CONFIG.feeNotes.map(n=>`<li>${esc(n)}</li>`).join("")}<li>이달 요일별 수업 횟수는 왼쪽 달력의 요일에 마우스를 올려 확인하세요.</li></ul></div>
     <div class="ref"><h3>우리 학원 소개</h3>
-      <ul>${CONFIG.intro.points.map(([k,v])=>`<li><b>${esc(k)}</b>: ${esc(v)}</li>`).join("")}<li>학생에게는 <b>입시 메이트</b>, 학부모님께는 <b>교육 메이트</b></li></ul>
+      <ul>${CONFIG.intro.points.map(([k,v])=>`<li><b style="font-weight:600">${esc(k)}</b>: ${esc(v)}</li>`).join("")}<li>학생에게는 <b style="font-weight:600">입시 메이트</b>, 학부모님께는 <b style="font-weight:600">교육 메이트</b></li></ul>
       <div class="say"><b>이렇게 말해보세요</b>"${esc(CONFIG.intro.say)}"</div>
       <div class="say"><b>쓰지 않는 표현</b>'소수정예' · 다른 학원을 깎아내리는 말</div></div>
     <div class="ref"><h3>메이트 올케어 프로그램</h3>
       <ul><li>3과목 이상(국·영·수 중심) 수강생 대상</li><li>원장이 학부모님과 직접 소통하며 주기적으로 학생 상황 점검</li><li>과목별 피드백을 모아 입시 전략 설계</li></ul>
       <div class="say"><b>이런 분께</b>"전체적으로 누가 좀 봐줬으면 좋겠다"고 말씀하시는 학부모님</div></div>
     <div class="ref"><h3>연락처</h3>
-      <dl class="kv">${kv(cur.short+" 대표", cur.tel)}${kv("이메일", cur.email)}${kv("문자 안내", CONFIG.smsTel)}${kv(other.short+" 대표", other.tel)}</dl>
-      ${cur.map?`<p style="margin:10px 0 0"><a href="${cur.map}" target="_blank" rel="noopener" style="color:var(--brand);font-weight:600">${cur.short} 네이버 지도 ↗</a></p>`:""}</div>
+      <dl class="kv">${kv(cur.short+" 대표", cur.tel)}${kv("이메일", cur.email)}${kv("문자 안내", CONFIG.smsTel)}${kv(other.short+" 대표", other.tel)}</dl></div>
     <div class="ref full"><h3>과목별 안내</h3><div class="rsubj">${SUBJECTS.map(subjCard).join("")}</div></div>
-    <div class="ref"><h3>이런 질문이 오면 <span class="draft">초안 · 원장 확인 필요</span></h3>${faqHtml("rfaq")}</div>
-    <div class="ref"><h3>결제 안내 문구</h3><div style="display:flex;flex-direction:column;gap:12px">${tpls}</div></div>`;
+    <div class="ref"><h3>이런 질문이 오면<span class="draft">초안 · 원장 확인 필요</span></h3>${faqHtml("rfaq")}</div>`;
 }
 
-/* ── 화면 전환 (버튼) ── */
-const VIEWS = ["log","consult","ref"];
+/* ── 문자 템플릿 ── */
+const SMS_FIELDS = ["student","date","time","cls","room","month"];
+let sm = store.get("desk:sms", {});
+function defaultMonth(){ const n=new Date(); return String(n.getDate()>=15 ? n.getMonth()%12+2 : n.getMonth()+1) }
+function smsText(t, html){
+  const b = B(), d = sm.date ? new Date(sm.date+"T00:00") : null;
+  const val = { "학생":sm.student, "날짜":d&&!isNaN(d)?md(d):"", "시간":sm.time, "수업":sm.cls, "강의실":sm.room, "청구월":sm.month||defaultMonth(),
+    "브랜드":b.brand, "지점":b.short, "대표번호":b.tel, "지도":b.map, "수강생카페":urlOf(b.cafe) };
+  const LABEL = { "학생":"학생 이름", "날짜":"날짜", "시간":"시간", "수업":"수업" };
+  const OPTIONAL = ["강의실","지도"];
+  const missing = new Set();
+  const out = t.text.split("\n").filter(line=>!OPTIONAL.some(k=>line.includes(`{${k}}`) && !(val[k]||"").trim()))
+    .map(line=>{ if (html) line = esc(line);
+      return line.replace(/\{([^}]+)\}/g, (_,k)=>{ const v=(val[k]||"").trim(); if (v) return html?esc(v):v; missing.add(LABEL[k]||k); return html?`<span class="ph">[${esc(LABEL[k]||k)}]</span>`:`[${LABEL[k]||k}]` }) });
+  return { text: out.join("\n"), missing:[...missing] };
+}
+function renderSms(){
+  $("sm-month").innerHTML = Array.from({length:12},(_,i)=>`<option value="${i+1}">${i+1}월</option>`).join("");
+  SMS_FIELDS.forEach(f=>{ $("sm-"+f).value = f==="month" ? (sm.month||defaultMonth()) : (sm[f]||"") });
+  $("smsFrom").textContent = `보내는 번호: ${CONFIG.smsTel} · ${B().short} 기준`;
+  renderSmsCards();
+}
+function renderSmsCards(){
+  $("smsgrid").innerHTML = CONFIG.sms.map(t=>{ const r = smsText(t, true);
+    return `<div class="sms" id="sms-${t.id}"><div class="sms-h"><b>${esc(t.name)}${t.draft?'<span class="draft">초안</span>':""}</b>
+      <button class="btn primary" type="button" data-copysms="${t.id}">복사</button></div>
+      <pre class="paper" id="smsText-${t.id}">${r.text}</pre>
+      ${r.missing.length?`<div class="need">채울 것: ${r.missing.map(esc).join(", ")}</div>`:""}</div>` }).join("");
+}
+$("view-sms").addEventListener("input", e=>{ const id=e.target.id||""; if(!id.startsWith("sm-")) return; sm[id.slice(3)] = e.target.value; store.set("desk:sms", sm); renderSmsCards() });
+$("view-sms").addEventListener("change", e=>{ const id=e.target.id||""; if(!id.startsWith("sm-")) return; sm[id.slice(3)] = e.target.value; store.set("desk:sms", sm); renderSmsCards() });
+$("smsgrid").addEventListener("click", e=>{
+  const b = e.target.closest("[data-copysms]"); if(!b) return;
+  const t = CONFIG.sms.find(x=>x.id===b.dataset.copysms), r = smsText(t, false);
+  copyText(r.text, $("smsText-"+t.id), r.missing.length ? `복사했어요. ${r.missing.join(", ")}을(를) 채워주세요` : "문자를 복사했어요");
+});
+
+/* ── 화면 전환 ── */
+const VIEWS = ["log","consult","ref","sms"];
 function setView(v){
   if (!VIEWS.includes(v)) v = "log";
   VIEWS.forEach(x=>{ $("view-"+x).hidden = x!==v; $("tab-"+x).setAttribute("aria-selected", x===v) });
@@ -895,13 +1046,12 @@ document.querySelector(".nav").addEventListener("click", e=>{ const b=e.target.c
 function setBranch(b){
   branch = b; store.set("desk:branch", b);
   document.documentElement.dataset.branch = b;
-  $("brandName").textContent = CONFIG.branches[b].name;
+  $("brandName").textContent = B().name;
   document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed", x.dataset.b===b));
-  loadLog(); renderRef(); renderConsult(); renderLinks();
+  renderLinks(); loadLog(); renderRef(); renderConsult(); renderSms();
 }
 document.querySelectorAll(".seg button").forEach(x=>x.addEventListener("click", ()=>setBranch(x.dataset.b)));
 
-renderLinks();
 tick();
 loadConsult();
 setBranch(branch);
